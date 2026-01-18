@@ -1,0 +1,43 @@
+version: "3.9"
+
+services:
+  django:
+    build: ./django
+    container_name: django
+    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - ./django:/app
+      - static_volume:/app/staticfiles
+    environment:
+      - POSTGRES_DB=cthpay
+      - POSTGRES_USER=cthpay_user
+      - POSTGRES_PASSWORD=cthpay_pass
+    depends_on:
+      - db
+    expose:
+      - "8000"
+
+  db:
+    image: postgres:16
+    container_name: postgres
+    environment:
+      POSTGRES_DB: cthpay
+      POSTGRES_USER: cthpay_user
+      POSTGRES_PASSWORD: cthpay_pass
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - static_volume:/static
+    depends_on:
+      - django
+
+volumes:
+  static_volume:
+  pgdata:
