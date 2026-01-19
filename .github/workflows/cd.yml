@@ -8,23 +8,16 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
       - name: SSH deploy
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
+          username: mikan
           key: ${{ secrets.VPS_SSH_KEY }}
-          debug: true
           script: |
             set -e
-            git config --global --add safe.directory /home/mikan/microcoupon
             cd /home/mikan/microcoupon
-            git fetch origin
-            git reset --hard origin/main
-            docker compose up -d --build
+            docker compose pull
+            docker compose up -d
 
