@@ -9,9 +9,9 @@ services:
       - ./django:/app
       - static_volume:/app/staticfiles
     environment:
-      - POSTGRES_DB=cthpay
-      - POSTGRES_USER=cthpay_user
-      - POSTGRES_PASSWORD=cthpay_pass
+      - POSTGRES_DB=microcoupon
+      - POSTGRES_USER=microcoupon_user
+      - POSTGRES_PASSWORD=microcoupon_pass
     depends_on:
       - db
     expose:
@@ -21,9 +21,9 @@ services:
     image: postgres:16
     container_name: postgres
     environment:
-      POSTGRES_DB: cthpay
-      POSTGRES_USER: cthpay_user
-      POSTGRES_PASSWORD: cthpay_pass
+      POSTGRES_DB: microcoupon
+      POSTGRES_USER: microcoupon_user
+      POSTGRES_PASSWORD: microcoupon_pass
     volumes:
       - pgdata:/var/lib/postgresql/data
 
