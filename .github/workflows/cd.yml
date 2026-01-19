@@ -22,7 +22,7 @@ jobs:
           debug: true
           script: |
             set -e
-            cd /home/ubuntu/microcoupon
+            cd /home/mikan/microcoupon
             git fetch origin
             git reset --hard origin/main
             docker compose up -d --build
