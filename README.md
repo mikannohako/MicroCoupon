@@ -1,1 +1,1 @@
-# CTHPay
+# MicroCoupon
