@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
-    'cthpay',
+    'microcoupon',
 ]
 
 MIDDLEWARE = [
@@ -105,9 +105,9 @@ AUTH_PASSWORD_VALIDATORS = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('POSTGRES_DB', 'cthpay'),
-        'USER': os.environ.get('POSTGRES_USER', 'cthpay_user'),
-        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'cthpay_pass'),
+        'NAME': os.environ.get('POSTGRES_DB', 'microcoupon'),
+        'USER': os.environ.get('POSTGRES_USER', 'microcoupon_user'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'microcoupon_pass'),
         'HOST': 'db',
         'PORT': 5432,
     }
