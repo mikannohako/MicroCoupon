@@ -24,4 +24,4 @@ jobs:
         with:
           context: ./django
           push: true
-          tags: ghcr.io/あなたのGitHub名/microcoupon:latest
+          tags: ghcr.io/mikannohako/microcoupon:latest
