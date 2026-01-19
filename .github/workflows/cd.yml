@@ -24,4 +24,4 @@ jobs:
             cd ~/microcoupon
             git pull
             docker compose up -d --build
-        debug: true
+      debug: true
