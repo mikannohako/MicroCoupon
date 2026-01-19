@@ -22,6 +22,7 @@ jobs:
           debug: true
           script: |
             set -e
+            git config --global --add safe.directory /home/mikan/microcoupon
             cd /home/mikan/microcoupon
             git fetch origin
             git reset --hard origin/main
