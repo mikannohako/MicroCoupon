@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   django:
-    build: ./django
+    image: ghcr.io/mikannohako/microcoupon:latest 
     container_name: django
     command: >
       sh -c "
