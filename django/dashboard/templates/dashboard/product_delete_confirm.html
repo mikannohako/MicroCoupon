@@ -1,0 +1,46 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}商品を削除 - MicroCoupon{% endblock %}
+{% block page_title %}商品を削除{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-card">
+        <div class="confirm-message">
+            <span class="material-icons" style="font-size: 48px; color: #dc3545;">warning</span>
+            <h2 style="margin: 20px 0;">本当に削除しますか？</h2>
+            <p style="color: #718096; margin-bottom: 20px;">この操作は取り消せません。</p>
+            
+            <div class="info-grid" style="margin: 20px 0;">
+                <div class="info-item">
+                    <label>教室</label>
+                    <p class="value">{{ product.room.name }}</p>
+                </div>
+                <div class="info-item">
+                    <label>品目</label>
+                    <p class="value">{{ product.name }}</p>
+                </div>
+                <div class="info-item">
+                    <label>値段</label>
+                    <p class="value">{{ product.price }} pt</p>
+                </div>
+            </div>
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-actions">
+                <a href="{% url 'dashboard:product_list' %}" class="btn btn-secondary">キャンセル</a>
+                <button type="submit" class="btn" style="background: #dc3545; color: white;">削除する</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.confirm-message {
+    text-align: center;
+    padding: 20px;
+}
+</style>
+{% endblock %}

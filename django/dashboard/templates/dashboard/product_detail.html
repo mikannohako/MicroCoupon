@@ -1,0 +1,59 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}{{ product.name }} - 商品詳細{% endblock %}
+{% block page_title %}商品詳細{% endblock %}
+
+{% block content %}
+<div class="detail-view">
+    <div class="detail-card">
+        <div class="detail-header">
+            <h2>{{ product.name }}</h2>
+            <span class="badge badge-{{ product.is_active|yesno:'success,secondary' }}">
+                {{ product.is_active|yesno:'販売中,販売停止' }}
+            </span>
+        </div>
+
+        <div class="detail-body">
+            <div class="info-grid">
+                <div class="info-item">
+                    <label>カテゴリ</label>
+                    <p class="value">
+                        <span class="badge badge-secondary">{{ product.category.name }}</span>
+                    </p>
+                </div>
+
+                <div class="info-item">
+                    <label>品目</label>
+                    <p class="value">{{ product.name }}</p>
+                </div>
+
+                <div class="info-item">
+                    <label>値段</label>
+                    <p class="value price">{{ product.price }} pt</p>
+                </div>
+
+                {% if product.description %}
+                <div class="info-item full-width">
+                    <label>説明</label>
+                    <p class="value">{{ product.description }}</p>
+                </div>
+                {% endif %}
+
+                <div class="info-item">
+                    <label>登録日時</label>
+                    <p class="value">{{ product.created_at|date:"Y/m/d H:i" }}</p>
+                </div>
+
+                <div class="info-item">
+                    <label>更新日時</label>
+                    <p class="value">{{ product.updated_at|date:"Y/m/d H:i" }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-actions">
+            <a href="{% url 'dashboard:product_list' %}" class="btn btn-secondary">戻る</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}カード一覧 - MicroCoupon{% endblock %}
+{% block page_title %}カード一覧{% endblock %}
+
+{% block content %}
+<div class="card-list-page">
+    <div class="list-header">
+        <a href="{% url 'dashboard:card_create' %}" class="btn btn-primary">
+            <span class="material-icons">add</span>
+            <span>新規発行</span>
+        </a>
+        
+        <form method="get" class="filter-form">
+            <select name="status" onchange="this.form.submit()">
+                <option value="">すべて</option>
+                <option value="unused" {% if status_filter == 'unused' %}selected{% endif %}>未使用</option>
+                <option value="active" {% if status_filter == 'active' %}selected{% endif %}>有効</option>
+                <option value="used" {% if status_filter == 'used' %}selected{% endif %}>使用済み</option>
+            </select>
+            
+            <input type="text" name="search" value="{{ search }}" placeholder="シリアル番号で検索...">
+            <button type="submit" class="btn btn-secondary">検索</button>
+        </form>
+    </div>
+
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>シリアル番号</th>
+                    <th>残高</th>
+                    <th>ステータス</th>
+                    <th>ロック</th>
+                    <th>作成日時</th>
+                    <th>使用日時</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for card in cards %}
+                <tr>
+                    <td>
+                        <code>{{ card.serial_number|truncatechars:20 }}</code>
+                    </td>
+                    <td><strong>{{ card.balance }} pt</strong></td>
+                    <td>
+                        <span class="status-badge status-{{ card.status }}">
+                            {{ card.get_status_display }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if card.is_locked %}
+                            <span class="lock-badge locked">
+                                <span class="material-icons">lock</span>
+                                <span>ロック</span>
+                            </span>
+                        {% else %}
+                            <span class="lock-badge unlocked">
+                                <span class="material-icons">lock_open</span>
+                                <span>解除</span>
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td>{{ card.created_at|date:"Y/m/d H:i" }}</td>
+                    <td>
+                        {% if card.used_at %}
+                            {{ card.used_at|date:"Y/m/d H:i" }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="action-btns">
+                            <a href="{% url 'dashboard:card_detail' card.id %}" class="btn-icon" title="詳細">
+                                <span class="material-icons">visibility</span>
+                            </a>
+                            <a href="{% url 'dashboard:card_edit' card.id %}" class="btn-icon" title="編集">
+                                <span class="material-icons">edit</span>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="no-data">カードが見つかりません</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,258 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>カード残高 - MicroCoupon</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .card-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+            overflow: hidden;
+        }
+        
+        .card-header {
+            background: #2d3748;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .card-header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .card-header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .card-body {
+            padding: 40px 30px;
+        }
+        
+        .card-icon {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .card-icon .material-icons {
+            font-size: 80px;
+            color: #4299e1;
+        }
+        
+        .balance-section {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: #f7fafc;
+            border-radius: 16px;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .balance-label {
+            font-size: 16px;
+            color: #718096;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        
+        .balance-value {
+            font-size: 64px;
+            font-weight: 700;
+            color: #2d3748;
+            line-height: 1;
+        }
+        
+        .balance-unit {
+            font-size: 28px;
+            color: #718096;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        
+        .info-section {
+            margin-bottom: 30px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #718096;
+            font-size: 14px;
+        }
+        
+        .info-value {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 16px;
+        }
+        
+        .serial-number {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            word-break: break-all;
+            text-align: right;
+            max-width: 280px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        
+        .status-unused {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+        
+        .status-active {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        
+        .status-used {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+        
+        .qr-section {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 2px dashed #e2e8f0;
+        }
+        
+        .qr-title {
+            font-size: 14px;
+            color: #718096;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .qr-code {
+            display: inline-block;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .qr-code img {
+            display: block;
+            width: 200px;
+            height: 200px;
+        }
+        
+        @media (max-width: 600px) {
+            .card-header h1 {
+                font-size: 28px;
+            }
+            
+            .balance-value {
+                font-size: 48px;
+            }
+            
+            .balance-unit {
+                font-size: 20px;
+            }
+            
+            .serial-number {
+                font-size: 10px;
+                max-width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="card-container">
+        <div class="card-header">
+            <h1>MicroCoupon</h1>
+            <p>プリペイドカード残高照会</p>
+        </div>
+        
+        <div class="card-body">
+            <div class="card-icon">
+                <span class="material-icons">credit_card</span>
+            </div>
+            
+            <div class="balance-section">
+                <div class="balance-label">残高</div>
+                <div>
+                    <span class="balance-value">{{ card.balance }}</span>
+                    <span class="balance-unit">pt</span>
+                </div>
+            </div>
+            
+            <div class="info-section">
+                <div class="info-row">
+                    <span class="info-label">ステータス</span>
+                    <span class="info-value">
+                        <span class="status-badge status-{{ card.status }}">
+                            {% if card.status == 'unused' %}未使用
+                            {% elif card.status == 'active' %}有効
+                            {% else %}使用済み{% endif %}
+                        </span>
+                    </span>
+                </div>
+                
+                <div class="info-row">
+                    <span class="info-label">シリアル番号</span>
+                    <span class="info-value">
+                        <div class="serial-number">{{ card.serial_number }}</div>
+                    </span>
+                </div>
+                
+                <div class="info-row">
+                    <span class="info-label">発行日</span>
+                    <span class="info-value">{{ card.created_at|date:"Y/m/d" }}</span>
+                </div>
+            </div>
+            
+            <div class="qr-section">
+                <div class="qr-title">このカードのQRコード</div>
+                <div class="qr-code">
+                    <img src="data:image/png;base64,{{ qr_code }}" alt="QRコード">
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

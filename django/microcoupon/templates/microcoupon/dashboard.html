@@ -1,0 +1,78 @@
+{% extends 'microcoupon/base.html' %}
+
+{% block title %}ダッシュボード - MicroCoupon{% endblock %}
+{% block page_title %}ダッシュボード{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-primary">
+                <span class="material-icons">credit_card</span>
+            </div>
+            <div class="stat-info">
+                <h3>総カード数</h3>
+                <p class="stat-value">{{ total_cards }}</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-secondary">
+                <span class="material-icons">inventory_2</span>
+            </div>
+            <div class="stat-info">
+                <h3>未使用</h3>
+                <p class="stat-value">{{ unused_cards }}</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-info">
+                <span class="material-icons">check_circle</span>
+            </div>
+            <div class="stat-info">
+                <h3>有効</h3>
+                <p class="stat-value">{{ active_cards }}</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-success">
+                <span class="material-icons">task_alt</span>
+            </div>
+            <div class="stat-info">
+                <h3>使用済み</h3>
+                <p class="stat-value">{{ used_cards }}</p>
+            </div>
+        </div>
+
+        <div class="stat-card wide">
+            <div class="stat-icon stat-icon-warning">
+                <span class="material-icons">account_balance_wallet</span>
+            </div>
+            <div class="stat-info">
+                <h3>総残高</h3>
+                <p class="stat-value">{{ total_balance|floatformat:0 }} pt</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="quick-actions">
+        <h2>クイックアクション</h2>
+        <div class="action-buttons">
+            <a href="{% url 'microcoupon:card_create' %}" class="action-btn primary">
+                <span class="material-icons">add_card</span>
+                <span>新規カード発行</span>
+            </a>
+            <a href="{% url 'microcoupon:card_list' %}" class="action-btn secondary">
+                <span class="material-icons">list_alt</span>
+                <span>カード一覧</span>
+            </a>
+            <a href="{% url 'microcoupon:card_list' %}?status=active" class="action-btn info">
+                <span class="material-icons">search</span>
+                <span>有効カード検索</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

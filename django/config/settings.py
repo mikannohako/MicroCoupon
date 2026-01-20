@@ -21,12 +21,25 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-@&j6v3y16l3v55_9qffm(u^qep#zx1yk=e0tb#(ne^b4p3s97_'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-@&j6v3y16l3v55_9qffm(u^qep#zx1yk=e0tb#(ne^b4p3s97_')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
+
+# ドメイン名とベーsURL
+DOMAIN_NAME = os.environ.get('DOMAIN_NAME', 'localhost:8080')
+BASE_URL = os.environ.get('BASE_URL', 'http://localhost:8080')
 
 ALLOWED_HOSTS = ["*"]
+
+CSRF_TRUSTED_ORIGINS = [
+    f'http://{DOMAIN_NAME}',
+    f'https://{DOMAIN_NAME}',
+    'http://127.0.0.1:8080',
+    'http://localhost:8080',
+    'http://100.126.35.120:8080',
+    'http://172.16.82.17:8080',
+]
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 USE_X_FORWARDED_HOST = True
@@ -41,7 +54,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
+    'account',
     'microcoupon',
+    'products',
+    'dashboard',
+    'transactions',
 ]
 
 MIDDLEWARE = [
@@ -137,3 +154,11 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Custom User Model
+AUTH_USER_MODEL = 'account.User'
+
+# Login/Logout URLs
+LOGIN_URL = '/account/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/account/login/'

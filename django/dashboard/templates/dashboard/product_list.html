@@ -1,0 +1,68 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}商品一覧 - MicroCoupon{% endblock %}
+{% block page_title %}商品一覧{% endblock %}
+
+{% block content %}
+<div class="card-management">
+    <div class="toolbar">
+        <a href="{% url 'dashboard:product_create' %}" class="btn btn-primary">
+            <span class="material-icons">add</span>
+            <span>商品を追加</span>
+        </a>
+        <div class="filters">
+            <form method="get" class="filter-form">
+                <select name="category" onchange="this.form.submit()">
+                    <option value="">すべての教室</option>
+                    {% for cat in categories %}
+                        <option value="{{ cat.id }}" {% if category_filter == cat.id|stringformat:"s" %}selected{% endif %}>
+                            {{ cat.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>教室</th>
+                    <th>品目</th>
+                    <th>値段</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr>
+                    <td>
+                        <span class="badge badge-secondary">{{ product.room.name }}</span>
+                    </td>
+                    <td><strong>{{ product.name }}</strong></td>
+                    <td>{{ product.price }} pt</td>
+                    <td>
+                        <div class="actions">
+                            <a href="{% url 'dashboard:product_detail' product.id %}" class="btn-icon" title="詳細">
+                                <span class="material-icons">visibility</span>
+                            </a>
+                            <a href="{% url 'dashboard:product_edit' product.id %}" class="btn-icon" title="編集">
+                                <span class="material-icons">edit</span>
+                            </a>
+                            <a href="{% url 'dashboard:product_delete' product.id %}" class="btn-icon" title="削除" style="color: #dc3545;">
+                                <span class="material-icons">delete</span>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="empty-state">商品が登録されていません</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

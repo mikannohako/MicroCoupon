@@ -1,0 +1,64 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>カード残高 - MicroCoupon</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="{% static 'microcoupon/css/card_public.css' %}">
+</head>
+<body>
+    <div class="card-container">
+        <div class="card-header">
+            <h1>MicroCoupon</h1>
+            <p>プリペイドカード残高照会</p>
+        </div>
+        
+        <div class="card-body">
+            <div class="card-icon">
+                <span class="material-icons">credit_card</span>
+            </div>
+            
+            <div class="balance-section">
+                <div class="balance-label">残高</div>
+                <div>
+                    <span class="balance-value">{{ card.balance }}</span>
+                    <span class="balance-unit">pt</span>
+                </div>
+            </div>
+            
+            <div class="info-section">
+                <div class="info-row">
+                    <span class="info-label">ステータス</span>
+                    <span class="info-value">
+                        <span class="status-badge status-{{ card.status }}">
+                            {{ card.get_status_display }}
+                        </span>
+                    </span>
+                </div>
+                
+                <div class="info-row">
+                    <span class="info-label">シリアル番号</span>
+                    <span class="info-value">
+                        <div class="serial-number">{{ card.serial_number }}</div>
+                    </span>
+                </div>
+                
+                <div class="info-row">
+                    <span class="info-label">発行日</span>
+                    <span class="info-value">{{ card.created_at|date:"Y/m/d" }}</span>
+                </div>
+            </div>
+            
+            <div class="qr-section">
+                <div class="qr-title">QRコード</div>
+                <div class="qr-code">
+                    <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code">
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

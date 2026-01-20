@@ -1,0 +1,461 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+
+{% block title %}カードの有効化 - MicroCoupon{% endblock %}
+
+{% block extra_css %}
+<style>
+    .activate-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .activate-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+    
+    .activate-header h1 {
+        font-size: 32px;
+        margin-bottom: 10px;
+        color: #2d3748;
+        font-weight: 700;
+    }
+    
+    .activate-header p {
+        color: #718096;
+        font-size: 16px;
+    }
+    
+    .input-section {
+        background: white;
+        border-radius: 16px;
+        padding: 40px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        margin-bottom: 30px;
+    }
+    
+    .input-method {
+        margin-bottom: 30px;
+    }
+    
+    .method-label {
+        display: block;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 15px;
+        font-size: 18px;
+    }
+    
+    .serial-input-group {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .serial-input {
+        flex: 1;
+        padding: 15px 20px;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: all 0.3s;
+    }
+    
+    .serial-input:focus {
+        border-color: #4299e1;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+    }
+    
+    .btn-activate {
+        padding: 15px 40px;
+        background: #4299e1;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+    }
+    
+    .btn-activate:hover {
+        background: #3182ce;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(66, 153, 225, 0.3);
+    }
+    
+    .qr-section {
+        text-align: center;
+        padding-top: 30px;
+        border-top: 2px dashed #e2e8f0;
+    }
+    
+    .qr-button {
+        padding: 20px 40px;
+        background: #48bb78;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 18px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .qr-button:hover {
+        background: #38a169;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+    }
+    
+    .result-card {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        margin-bottom: 20px;
+    }
+    
+    .result-success {
+        border-left: 5px solid #48bb78;
+    }
+    
+    .result-error {
+        border-left: 5px solid #f56565;
+    }
+    
+    .result-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .result-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .result-icon.success {
+        background: #c6f6d5;
+    }
+    
+    .result-icon.error {
+        background: #fed7d7;
+    }
+    
+    .result-icon i {
+        font-size: 32px;
+    }
+    
+    .result-icon.success i {
+        color: #48bb78;
+    }
+    
+    .result-icon.error i {
+        color: #f56565;
+    }
+    
+    .result-message {
+        font-size: 20px;
+        font-weight: 600;
+        color: #2d3748;
+    }
+    
+    .card-info {
+        background: #f7fafc;
+        border-radius: 8px;
+        padding: 20px;
+    }
+    
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .info-row:last-child {
+        border-bottom: none;
+    }
+    
+    .info-label {
+        color: #718096;
+        font-weight: 500;
+    }
+    
+    .info-value {
+        font-weight: 600;
+        color: #2d3748;
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+    
+    .status-unused {
+        background: #e2e8f0;
+        color: #4a5568;
+    }
+    
+    .status-active {
+        background: #c6f6d5;
+        color: #22543d;
+    }
+    
+    .status-used {
+        background: #fed7d7;
+        color: #742a2a;
+    }
+    
+    /* QRスキャナーモーダル */
+    .scanner-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.95);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .scanner-modal.active {
+        display: flex;
+    }
+    
+    .scanner-content {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        max-width: 700px;
+        width: 95%;
+        max-height: 90vh;
+    }
+    
+    .scanner-header {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    
+    .scanner-header h2 {
+        margin-bottom: 10px;
+        color: #2d3748;
+    }
+    
+    .scanner-header p {
+        color: #718096;
+    }
+    
+    .scanner-container {
+        position: relative;
+        background: #000;
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 20px;
+        max-width: 100%;
+    }
+    
+    #qr-reader {
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    #qr-reader video {
+        width: 100% !important;
+        height: auto !important;
+        max-height: 400px !important;
+        object-fit: contain !important;
+        display: block;
+    }
+    
+    #qr-reader canvas {
+        width: 100% !important;
+        height: auto !important;
+        max-height: 400px !important;
+    }
+    
+    .scanner-actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .btn-scanner {
+        flex: 1;
+        padding: 14px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .btn-cancel {
+        background: #e2e8f0;
+        color: #4a5568;
+    }
+    
+    .btn-cancel:hover {
+        background: #cbd5e0;
+    }
+</style>
+<script src="https://unpkg.com/html5-qrcode"></script>
+{% endblock %}
+
+{% block content %}
+<div class="activate-container">
+    <div class="activate-header">
+        <h1>カードの有効化</h1>
+        <p>QRコードをスキャンするか、シリアル番号を入力してカードを有効化します</p>
+    </div>
+    
+    {% if result %}
+    <div class="result-card {% if result.success %}result-success{% else %}result-error{% endif %}">
+        <div class="result-header">
+            <div class="result-icon {% if result.success %}success{% else %}error{% endif %}">
+                <i class="material-icons">{% if result.success %}check_circle{% else %}error{% endif %}</i>
+            </div>
+            <div class="result-message">{{ result.message }}</div>
+        </div>
+        {% if result.card %}
+        <div class="card-info">
+            <div class="info-row">
+                <span class="info-label">シリアル番号</span>
+                <span class="info-value">{{ result.card.serial_number }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">残高</span>
+                <span class="info-value">{{ result.card.balance }}pt</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">ステータス</span>
+                <span class="info-value">
+                    <span class="status-badge status-{{ result.card.status }}">
+                        {% if result.card.status == 'unused' %}未使用
+                        {% elif result.card.status == 'active' %}有効
+                        {% else %}使用済み{% endif %}
+                    </span>
+                </span>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    <div class="input-section">
+        <form method="post">
+            {% csrf_token %}
+            <div class="input-method">
+                <label class="method-label">
+                    <span class="material-icons" style="vertical-align: middle; margin-right: 5px;">edit</span>
+                    シリアル番号を入力
+                </label>
+                <div class="serial-input-group">
+                    <input type="text" name="serial_number" class="serial-input" placeholder="シリアル番号を入力してください" autofocus>
+                    <button type="submit" class="btn-activate">
+                        <span class="material-icons">check_circle</span>
+                        有効化
+                    </button>
+                </div>
+            </div>
+        </form>
+        
+        <div class="qr-section">
+            <button type="button" class="qr-button" onclick="openQRScanner()">
+                <span class="material-icons">qr_code_scanner</span>
+                QRコードをスキャン
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- QRスキャナーモーダル -->
+<div class="scanner-modal" id="qrScannerModal">
+    <div class="scanner-content">
+        <div class="scanner-header">
+            <h2>QRコードをスキャン</h2>
+            <p>カードのQRコードを枠内に合わせてください</p>
+        </div>
+        <div class="scanner-container">
+            <div id="qr-reader"></div>
+        </div>
+        <div class="scanner-actions">
+            <button class="btn-scanner btn-cancel" onclick="closeQRScanner()">キャンセル</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let qrScanner = null;
+    
+    function openQRScanner() {
+        const modal = document.getElementById('qrScannerModal');
+        modal.classList.add('active');
+        
+        qrScanner = new Html5Qrcode("qr-reader");
+        qrScanner.start(
+            { facingMode: "environment" },
+            {
+                fps: 10,
+                qrbox: { width: 200, height: 200 }
+            },
+            onScanSuccess,
+            onScanError
+        ).catch(err => {
+            console.error('カメラの起動に失敗しました:', err);
+            alert('カメラの起動に失敗しました。カメラの権限を確認してください。');
+            closeQRScanner();
+        });
+    }
+    
+    function closeQRScanner() {
+        if (qrScanner) {
+            qrScanner.stop().then(() => {
+                qrScanner = null;
+                document.getElementById('qrScannerModal').classList.remove('active');
+            }).catch(err => {
+                console.error('スキャナーの停止に失敗しました:', err);
+                qrScanner = null;
+                document.getElementById('qrScannerModal').classList.remove('active');
+            });
+        } else {
+            document.getElementById('qrScannerModal').classList.remove('active');
+        }
+    }
+    
+    function onScanSuccess(decodedText) {
+        const match = decodedText.match(/\/cards\/([^\/]+)/);
+        const serialNumber = match ? match[1] : decodedText;
+        
+        closeQRScanner();
+        
+        const form = document.querySelector('form');
+        const input = form.querySelector('input[name="serial_number"]');
+        input.value = serialNumber;
+        form.submit();
+    }
+    
+    function onScanError(error) {
+        // エラーは無視（スキャン中は頻繁に発生）
+    }
+</script>
+{% endblock %}

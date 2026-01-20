@@ -1,0 +1,91 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}カード詳細 - MicroCoupon{% endblock %}
+{% block page_title %}カード詳細{% endblock %}
+
+{% block content %}
+<div class="detail-container">
+    <div class="detail-card">
+        <div class="detail-header">
+            <h2>カード情報</h2>
+            <span class="status-badge status-{{ card.status }}">
+                {{ card.get_status_display }}
+            </span>
+        </div>
+        
+        <div class="detail-body">
+                        
+            <div class="detail-divider"></div>
+            
+            <div class="detail-row">
+                <div class="detail-label">シリアル番号</div>
+                <div class="detail-value"><code>{{ card.serial_number }}</code></div>
+            </div>
+            
+            <div class="detail-row">
+                <div class="detail-label">残高</div>
+                <div class="detail-value"><strong>{{ card.balance }} pt</strong></div>
+            </div>
+            
+            <div class="detail-row">
+                <div class="detail-label">ステータス</div>
+                <div class="detail-value">
+                    <span class="status-badge status-{{ card.status }}">
+                        {{ card.get_status_display }}
+                    </span>
+                </div>
+            </div>
+            
+            <div class="detail-row">
+                <div class="detail-label">ロック状態</div>
+                <div class="detail-value">
+                    {% if card.is_locked %}
+                        <span class="lock-badge locked">
+                            <span class="material-icons">lock</span>
+                            <span>ロック中</span>
+                        </span>
+                    {% else %}
+                        <span class="lock-badge unlocked">
+                            <span class="material-icons">lock_open</span>
+                            <span>解除</span>
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="detail-row">
+                <div class="detail-label">作成日時</div>
+                <div class="detail-value">{{ card.created_at|date:"Y年m月d日 H:i:s" }}</div>
+            </div>
+            
+            <div class="detail-row">
+                <div class="detail-label">使用日時</div>
+                <div class="detail-value">
+                    {% if card.used_at %}
+                        {{ card.used_at|date:"Y年m月d日 H:i:s" }}
+                    {% else %}
+                        未使用
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- QRコード表示 -->
+            <div class="qr-code-section">
+                <h3>QRコード</h3>
+                <div class="qr-code-container">
+                    <img src="{{ qr_image }}" alt="QRコード" class="qr-code-image">
+                    <p class="qr-code-url">{{ qr_url }}</p>
+                    <small>このQRコードをスキャンすると残高を確認できます</small>
+                </div>
+            </div>
+
+        </div>
+        
+        
+        <div class="detail-actions">
+            <a href="{% url 'dashboard:card_edit' card.id %}" class="btn btn-primary">編集する</a>
+            <a href="{% url 'dashboard:card_list' %}" class="btn btn-secondary">戻る</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
