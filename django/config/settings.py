@@ -91,17 +91,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
-
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
@@ -121,14 +110,20 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Database
+POSTGRES_DB = os.environ.get('POSTGRES_DB', 'microcoupon')
+POSTGRES_USER = os.environ.get('POSTGRES_USER', 'microcoupon_user')
+POSTGRES_PASSWORD = os.environ.get('POSTGRES_PASSWORD', 'microcoupon_pass')
+POSTGRES_HOST = os.environ.get('POSTGRES_HOST', 'db')
+POSTGRES_PORT = int(os.environ.get('POSTGRES_PORT', '5432'))
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('POSTGRES_DB', 'microcoupon'),
-        'USER': os.environ.get('POSTGRES_USER', 'microcoupon_user'),
-        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'microcoupon_pass'),
-        'HOST': 'db',
-        'PORT': 5432,
+        'NAME': POSTGRES_DB,
+        'USER': POSTGRES_USER,
+        'PASSWORD': POSTGRES_PASSWORD,
+        'HOST': POSTGRES_HOST,
+        'PORT': POSTGRES_PORT,
     }
 }
 

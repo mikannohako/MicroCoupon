@@ -1,22 +1,10 @@
-name: CD
+name: Deprecated CD
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
-  deploy:
+  noop:
     runs-on: ubuntu-latest
     steps:
-      - name: SSH deploy
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: deploy
-          key: ${{ secrets.VPS_SSH_KEY }}
-          script: |
-            set -e
-            cd /home/mikan/microcoupon
-            docker compose pull
-            docker compose up -d
+      - run: echo "This workflow is deprecated. Use CI/CD (docker-image.yml)."

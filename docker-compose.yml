@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   django:
-    # image: ghcr.io/mikannohako/microcoupon:latest
+    image: ghcr.io/mikannohako/microcoupon:latest
     build: 
       context: ./django
       dockerfile: Dockerfile
