@@ -31,7 +31,6 @@
                     <th>シリアル番号</th>
                     <th>残高</th>
                     <th>ステータス</th>
-                    <th>ロック</th>
                     <th>作成日時</th>
                     <th>使用日時</th>
                     <th>操作</th>
@@ -48,19 +47,6 @@
                         <span class="status-badge status-{{ card.status }}">
                             {{ card.get_status_display }}
                         </span>
-                    </td>
-                    <td>
-                        {% if card.is_locked %}
-                            <span class="lock-badge locked">
-                                <span class="material-icons">lock</span>
-                                <span>ロック</span>
-                            </span>
-                        {% else %}
-                            <span class="lock-badge unlocked">
-                                <span class="material-icons">lock_open</span>
-                                <span>解除</span>
-                            </span>
-                        {% endif %}
                     </td>
                     <td>{{ card.created_at|date:"Y/m/d H:i" }}</td>
                     <td>
