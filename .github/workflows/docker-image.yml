@@ -56,10 +56,6 @@ jobs:
         working-directory: django
         run: pip install --no-cache-dir -r requirements.txt
 
-      - name: Apply migrations
-        working-directory: django
-        run: python manage.py migrate --noinput
-
       - name: Run tests
         working-directory: django
         run: python manage.py test
