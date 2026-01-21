@@ -46,13 +46,23 @@
             </div>
         </div>
 
-        <div class="stat-card wide">
+        <div class="stat-card">
             <div class="stat-icon stat-icon-warning">
                 <span class="material-icons">account_balance_wallet</span>
             </div>
             <div class="stat-info">
                 <h3>総残高</h3>
                 <p class="stat-value">{{ total_balance|floatformat:0 }} pt</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-danger">
+                <span class="material-icons">payments</span>
+            </div>
+            <div class="stat-info">
+                <h3>使用残高（総売上）</h3>
+                <p class="stat-value">{{ used_balance|floatformat:0 }} pt</p>
             </div>
         </div>
 

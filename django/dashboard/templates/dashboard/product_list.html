@@ -3,6 +3,52 @@
 {% block title %}商品一覧 - MicroCoupon{% endblock %}
 {% block page_title %}商品一覧{% endblock %}
 
+{% block extra_css %}
+<style>
+.card-management .table-container {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.card-management .actions {
+    display: flex;
+    gap: 6px;
+}
+
+.card-management .actions .btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #fff;
+    color: #4a5568;
+}
+
+.card-management .actions .btn-icon:hover {
+    background: #edf2f7;
+}
+
+.card-management .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: #edf2f7;
+    color: #2d3748;
+}
+
+.card-management .badge .material-icons {
+    font-size: 16px;
+    color: #4a5568;
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="card-management">
     <div class="toolbar">

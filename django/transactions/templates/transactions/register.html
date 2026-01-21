@@ -7,603 +7,13 @@
     <title>レジ - MicroCoupon</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-    <link rel="stylesheet" href="{% static 'microcoupon/css/admin.css' %}">
-    <style>
-        .register-container {
-            display: grid;
-            grid-template-columns: 1fr 400px;
-            gap: 20px;
-            height: calc(100vh - 130px);
-            padding: 0 20px 20px 20px;
-        }
-        
-        .products-section {
-            background: white;
-            border-radius: 8px;
-            padding: 20px;
-            overflow-y: auto;
-        }
-        
-        .products-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 15px;
-        }
-        
-        .product-card {
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 15px;
-            padding-top: 40px;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-align: center;
-            position: relative;
-        }
-        
-        .product-card:hover {
-            border-color: #5a67d8;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(90, 103, 216, 0.2);
-        }
-        
-        .product-name {
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-        
-        .product-price {
-            color: #5a67d8;
-            font-size: 18px;
-            font-weight: 700;
-        }
-        
-        .product-actions {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            display: flex;
-            gap: 4px;
-            z-index: 10;
-        }
-        
-        .product-btn {
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 4px;
-            padding: 4px 8px;
-            cursor: pointer;
-            font-size: 11px;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 2px;
-        }
-        
-        .product-btn.edit {
-            color: #48bb78;
-            border-color: #48bb78;
-        }
-        
-        .product-btn.edit:hover {
-            background: #48bb78;
-            color: white;
-        }
-        
-        .product-btn.delete {
-            color: #dc3545;
-            border-color: #dc3545;
-        }
-        
-        .product-btn.delete:hover {
-            background: #dc3545;
-            color: white;
-        }
-        
-        .cart-section {
-            background: white;
-            border-radius: 8px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .cart-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #e2e8f0;
-        }
-        
-        .sales-info {
-            background: #f7fafc;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        
-        .sales-info h3 {
-            font-size: 14px;
-            color: #718096;
-            margin-bottom: 5px;
-        }
-        
-        .sales-info .amount {
-            font-size: 24px;
-            font-weight: 700;
-            color: #2d3748;
-        }
-        
-        .cart-items {
-            flex: 1;
-            overflow-y: auto;
-            margin-bottom: 20px;
-        }
-        
-        /* 購入完了ポップアップ */
-        .success-popup {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            background: white;
-            border-radius: 16px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            z-index: 10001;
-            max-width: 400px;
-            width: 90%;
-            text-align: center;
-            opacity: 0;
-            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        }
-        
-        .success-popup.show {
-            transform: translate(-50%, -50%) scale(1);
-            opacity: 1;
-        }
-        
-        .success-popup-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 10000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s;
-        }
-        
-        .success-popup-overlay.show {
-            opacity: 1;
-            visibility: visible;
-        }
-        
-        .success-icon {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            animation: scaleIn 0.5s ease-out;
-        }
-        
-        .success-icon i {
-            color: white;
-            font-size: 48px;
-        }
-        
-        @keyframes scaleIn {
-            0% {
-                transform: scale(0) rotate(0deg);
-            }
-            50% {
-                transform: scale(1.1) rotate(180deg);
-            }
-            100% {
-                transform: scale(1) rotate(360deg);
-            }
-        }
-        
-        .success-title {
-            font-size: 24px;
-            font-weight: 700;
-            color: #2d3748;
-            margin-bottom: 15px;
-        }
-        
-        .success-details {
-            background: #f7fafc;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        
-        .success-detail-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-        }
-        
-        .success-detail-row:not(:last-child) {
-            border-bottom: 1px solid #e2e8f0;
-        }
-        
-        .success-detail-label {
-            color: #718096;
-            font-size: 14px;
-        }
-        
-        .success-detail-value {
-            font-weight: 600;
-            color: #2d3748;
-            font-size: 16px;
-        }
-        
-        .success-detail-value.highlight {
-            color: #667eea;
-            font-size: 20px;
-        }
-        
-        .success-close-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 12px 40px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            width: 100%;
-        }
-        
-        .success-close-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
-        
-        .cart-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        
-        .cart-item-info {
-            flex: 1;
-        }
-        
-        .cart-item-name {
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-        
-        .cart-item-price {
-            color: #718096;
-            font-size: 14px;
-        }
-        
-        .cart-item-remove {
-            color: #dc3545;
-            cursor: pointer;
-            padding: 5px;
-        }
-        
-        .cart-total {
-            padding: 20px;
-            background: #f7fafc;
-            border-radius: 8px;
-            margin-bottom: 15px;
-        }
-        
-        .cart-total-label {
-            font-size: 14px;
-            color: #718096;
-            margin-bottom: 5px;
-        }
-        
-        .cart-total-amount {
-            font-size: 32px;
-            font-weight: 700;
-            color: #2d3748;
-        }
-        
-        .btn-checkout {
-            width: 100%;
-            padding: 15px;
-            background: #5a67d8;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-        
-        .btn-checkout:disabled {
-            background: #cbd5e0;
-            color: #a0aec0;
-            cursor: not-allowed;
-            opacity: 0.6;
-        }
-        
-        .btn-clear {
-            width: 100%;
-            padding: 10px;
-            background: #e2e8f0;
-            color: #4a5568;
-            border: none;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-bottom: 10px;
-        }
-        
-        /* QRコードスキャナーモーダル */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.95);
-            z-index: 9999;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .modal.active {
-            display: flex;
-        }
-        
-        .modal-content {
-            background: white;
-            border-radius: 16px;
-            padding: 30px;
-            max-width: 700px;
-            width: 95%;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-        
-        .scanner-header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        
-        .scanner-header h2 {
-            margin-bottom: 10px;
-            color: #2d3748;
-        }
-        
-        .scanner-header p {
-            color: #718096;
-            font-size: 14px;
-        }
-        
-        .scanner-container {
-            position: relative;
-            background: #000;
-            border-radius: 12px;
-            overflow: hidden;
-            margin-bottom: 20px;
-            max-width: 100%;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        
-        #qr-reader {
-            width: 100%;
-            max-width: 100%;
-            margin: 0 auto;
-        }
-        
-        #qr-reader video {
-            width: 100% !important;
-            height: auto !important;
-            max-height: 400px !important;
-            object-fit: contain !important;
-            display: block;
-            border-radius: 12px;
-        }
-        
-        #qr-reader canvas {
-            width: 100% !important;
-            height: auto !important;
-            max-height: 400px !important;
-        }
-        
-        #qr-reader__dashboard {
-            display: none !important;
-        }
-        
-        #qr-reader__dashboard_section {
-            display: none !important;
-        }
-        
-        #qr-reader__header_message {
-            display: none !important;
-        }
-        
-        .scan-guide {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 280px;
-            height: 280px;
-            pointer-events: none;
-            z-index: 10;
-        }
-        
-        .scan-guide::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 60px;
-            height: 60px;
-            border-top: 4px solid #5a67d8;
-            border-left: 4px solid #5a67d8;
-            border-radius: 8px 0 0 0;
-        }
-        
-        .scan-guide::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 60px;
-            height: 60px;
-            border-top: 4px solid #5a67d8;
-            border-right: 4px solid #5a67d8;
-            border-radius: 0 8px 0 0;
-        }
-        
-        .scan-guide .bottom-left {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 60px;
-            height: 60px;
-            border-bottom: 4px solid #5a67d8;
-            border-left: 4px solid #5a67d8;
-            border-radius: 0 0 0 8px;
-        }
-        
-        .scan-guide .bottom-right {
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            width: 60px;
-            height: 60px;
-            border-bottom: 4px solid #5a67d8;
-            border-right: 4px solid #5a67d8;
-            border-radius: 0 0 8px 0;
-        }
-        
-        .scan-guide .scan-text {
-            position: absolute;
-            bottom: -40px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: white;
-            font-weight: 600;
-            font-size: 16px;
-            white-space: nowrap;
-            background: rgba(90, 103, 216, 0.9);
-            padding: 8px 20px;
-            border-radius: 20px;
-        }
-        
-        .modal-actions {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .btn-modal {
-            flex: 1;
-            padding: 14px;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .btn-cancel {
-            background: #e2e8f0;
-            color: #4a5568;
-        }
-        
-        .btn-cancel:hover {
-            background: #cbd5e0;
-        }
-        
-        /* ヘッダーバー */
-        .register-header {
-            background: white;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-        
-        .register-title {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .register-title h1 {
-            font-size: 24px;
-            font-weight: 700;
-            color: #2d3748;
-            margin: 0;
-        }
-        
-        .user-section {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .user-name {
-            font-weight: 600;
-            color: #2d3748;
-        }
-        
-        .history-btn, .logout-btn {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            background: #e2e8f0;
-            color: #4a5568;
-            text-decoration: none;
-            border-radius: 6px;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-        
-        .history-btn {
-            background: #5a67d8;
-            color: white;
-        }
-        
-        .history-btn:hover {
-            background: #4c51bf;
-        }
-        
-        .logout-btn:hover {
-            background: #cbd5e0;
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'microcoupon/css/register.css' %}">
 </head>
 <body>
     <!-- ヘッダーバー -->
     <div class="register-header">
         <div class="register-title">
-            <span class="material-icons" style="font-size: 32px; color: #5a67d8;">point_of_sale</span>
+            <span class="material-icons">point_of_sale</span>
             <h1>レジ</h1>
         </div>
         <div class="user-section">
@@ -666,7 +76,7 @@
         </div>
         
         <!-- カートエリア -->
-        <div class="cart-section">
+        <div class="cart-section" id="cartSection">
             <div class="cart-header">
                 <h2>カート</h2>
             </div>
@@ -698,6 +108,13 @@
                 <span>シリアル番号を入力</span>
             </button>
         </div>
+    </div>
+
+    <!-- モバイル用のカート合計スティッキーバー（タップでカートへスクロール） -->
+    <div class="cart-summary-bar" id="mobileCartSummary" onclick="scrollToCart()" role="button" aria-label="カートを表示">
+        <div class="cart-summary-label">カート合計</div>
+        <div class="cart-summary-amount" id="summaryTotalAmount">0 pt</div>
+        <div class="cart-summary-hint">タップでカートを表示</div>
     </div>
     
     <!-- QRスキャナーモーダル -->
@@ -744,11 +161,11 @@
     
     <!-- 購入完了ポップアップ -->
     <div class="success-popup-overlay" id="successOverlay"></div>
-    <div class="success-popup" id="successPopup">
-        <div class="success-icon">
+    <div class="success-popup status-success" id="successPopup">
+        <div class="success-icon status-success">
             <i class="material-icons">check_circle</i>
         </div>
-        <h2 class="success-title">決済完了！</h2>
+        <h2 class="success-title status-success">決済完了！</h2>
         <div class="success-details">
             <div class="success-detail-row">
                 <span class="success-detail-label">購入金額</span>
@@ -759,7 +176,7 @@
                 <span class="success-detail-value" id="popupRemainingBalance">0pt</span>
             </div>
         </div>
-        <button class="success-close-btn" onclick="closeSuccessPopup()">閉じる</button>
+        <button class="success-close-btn status-success" onclick="closeSuccessPopup()">閉じる</button>
     </div>
             <div class="scanner-header">
                 <h2 id="productModalTitle">商品を追加</h2>
@@ -799,15 +216,15 @@
     
     <!-- エラーポップアップ -->
     <div class="success-popup-overlay" id="errorOverlay"></div>
-    <div class="success-popup" id="errorPopup">
-        <div class="success-icon" style="background: #fed7d7;">
-            <i class="material-icons" style="color: #e53e3e;">error</i>
+    <div class="success-popup status-error" id="errorPopup">
+        <div class="success-icon status-error">
+            <i class="material-icons">error</i>
         </div>
-        <h2 class="success-title" style="color: #c53030;">エラー</h2>
+        <h2 class="success-title status-error">エラー</h2>
         <div class="success-details">
             <div style="text-align: center; padding: 20px; color: #2d3748; font-size: 16px;" id="errorMessage"></div>
         </div>
-        <button class="success-close-btn" style="background: #e53e3e;" onclick="closeErrorPopup()">閉じる</button>
+        <button class="success-close-btn status-error" onclick="closeErrorPopup()">閉じる</button>
     </div>
     
     <script src="https://unpkg.com/html5-qrcode"></script>
@@ -911,7 +328,44 @@
             }
             
             document.getElementById('totalAmount').textContent = `${total} pt`;
+            const summaryEl = document.getElementById('summaryTotalAmount');
+            if (summaryEl) {
+                summaryEl.textContent = `${total} pt`;
+            }
         }
+
+        function scrollToCart() {
+            const cartEl = document.getElementById('cartSection');
+            if (!cartEl) return;
+            cartEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // カートが画面内にあるときはモバイルの合計バーを隠し、見えなくなったら表示
+        document.addEventListener('DOMContentLoaded', () => {
+            const summaryBar = document.getElementById('mobileCartSummary');
+            const cartEl = document.getElementById('cartSection');
+            if (!summaryBar || !cartEl) return;
+
+            // 念のため初期表示を有効化（CSSのdisplay: flex が効く）
+            summaryBar.classList.remove('hidden');
+
+            if (!('IntersectionObserver' in window)) return;
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        summaryBar.classList.add('hidden');
+                    } else {
+                        summaryBar.classList.remove('hidden');
+                    }
+                });
+            }, {
+                threshold: 0.05,
+                rootMargin: '0px 0px -120px 0px' // 少し余裕をもってカートが見えたら隠す
+            });
+
+            observer.observe(cartEl);
+        });
         
         function openQRScanner() {
             const modal = document.getElementById('qrModal');

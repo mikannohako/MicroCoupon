@@ -14,6 +14,8 @@ urlpatterns = [
     # カード管理
     path('cards/', views.card_list, name='card_list'),
     path('cards/create/', views.card_create, name='card_create'),
+    path('cards/bulk-create/', views.card_bulk_create, name='card_bulk_create'),
+    path('cards/bulk-delete/', views.card_bulk_delete, name='card_bulk_delete'),
     path('cards/activate/', views.card_activate, name='card_activate'),
     path('cards/<uuid:card_id>/', views.card_detail, name='card_detail'),
     path('cards/<uuid:card_id>/edit/', views.card_edit, name='card_edit'),

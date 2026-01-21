@@ -8,7 +8,8 @@ class Transaction(models.Model):
     """決済ログ"""
     card = models.ForeignKey(
         Card,
-        on_delete=models.PROTECT,
+        on_delete=models.SET_NULL,
+        null=True,
         related_name='transactions',
         verbose_name='カード'
     )

@@ -2,6 +2,7 @@
 from django.contrib import messages
 from django.db.models import Sum
 from django.conf import settings
+from django.http import HttpResponse
 from microcoupon.models import Card
 from products.models import Product
 from account.models import Room
@@ -11,6 +12,9 @@ import uuid
 import qrcode
 from io import BytesIO
 import base64
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import landscape, letter
+from reportlab.lib.units import mm, inch
 
 
 @admin_required
@@ -20,6 +24,7 @@ def dashboard(request):
     active_cards = Card.objects.filter(status='active').count()
     used_cards = Card.objects.filter(status='used').count()
     total_balance = Card.objects.filter(status='active').aggregate(Sum('balance'))['balance__sum'] or 0
+    total_sales = Transaction.objects.filter(status='completed').aggregate(Sum('total_amount'))['total_amount__sum'] or 0
     total_products = Product.objects.count()
     active_products = Product.objects.filter(is_active=True).count()
     context = {
@@ -28,6 +33,7 @@ def dashboard(request):
         'active_cards': active_cards,
         'used_cards': used_cards,
         'total_balance': total_balance,
+        'used_balance': total_sales,
         'total_products': total_products,
         'active_products': active_products,
     }
@@ -71,6 +77,56 @@ def card_create(request):
         except Exception as e:
             messages.error(request, f'エラー: {str(e)}')
     return render(request, 'dashboard/card_create.html')
+
+
+@admin_required
+def card_bulk_create(request):
+    if request.method == 'POST':
+        count = request.POST.get('count')
+        balance = request.POST.get('balance', 0)
+        export_pdf = request.POST.get('export_pdf') == 'on'
+        try:
+            count_int = max(0, int(count)) if count is not None else 0
+            balance_int = int(balance)
+            if count_int <= 0:
+                messages.error(request, '作成する枚数を1以上で指定してください。')
+                return redirect('dashboard:card_list')
+            import uuid
+            cards = [Card(balance=balance_int, serial_number=str(uuid.uuid4())) for _ in range(count_int)]
+            created_cards = Card.objects.bulk_create(cards)
+            messages.success(request, f'{count_int}枚のカードを一括作成しました（初期残高: {balance_int}pt）。')
+            
+            # PDF出力が指定された場合
+            if export_pdf and created_cards:
+                return generate_cards_pdf(created_cards)
+        except ValueError:
+            messages.error(request, '枚数と残高は数値で入力してください。')
+        except Exception as e:
+            messages.error(request, f'エラー: {str(e)}')
+    return redirect('dashboard:card_list')
+
+
+@admin_required
+def card_bulk_delete(request):
+    if request.method == 'POST':
+        delete_status = request.POST.get('delete_status', 'unused')
+        delete_count = request.POST.get('delete_count')
+        try:
+            qs = Card.objects.filter(status=delete_status)
+            if delete_count:
+                limit = max(0, int(delete_count))
+                qs = qs.order_by('created_at')[:limit]
+            deleted = qs.count()
+            if deleted == 0:
+                messages.info(request, '削除対象のカードがありません。')
+                return redirect('dashboard:card_list')
+            qs.delete()
+            messages.success(request, f'{deleted}枚のカードを削除しました（ステータス: {delete_status}）。')
+        except ValueError:
+            messages.error(request, '削除枚数は数値で入力してください。')
+        except Exception as e:
+            messages.error(request, f'エラー: {str(e)}')
+    return redirect('dashboard:card_list')
 
 
 @admin_required
@@ -285,4 +341,124 @@ def sales_detail(request, transaction_id):
         'date_filter': date_filter,
     }
     return render(request, 'dashboard/sales_detail.html', context)
+
+
+def generate_cards_pdf(cards):
+    """
+    複数のカード（QRコード+シリアルナンバー）を名刺サイズで印字したPDFを生成
+    A4横向きに3x5=15枚のカード配置
+    カードサイズ: 54mm x 91mm (名刺サイズ)
+    """
+    import tempfile
+    import os
+    
+    # ページサイズ
+    page_width, page_height = landscape(letter)  # 11in x 8.5in
+    
+    # 名刺サイズ: 幅91mm × 高さ54mm
+    card_width = 91 * mm
+    card_height = 54 * mm
+    
+    # レイアウト計算（A4横向き）
+    margin_top = 0.4 * inch
+    margin_left = 0.4 * inch
+    
+    # PDFバッファ作成
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=(page_width, page_height))
+    
+    # ページ座標系: 左下が原点
+    cards_per_page = 15  # 3列 x 5行
+    
+    for card_index, card in enumerate(cards):
+        # ページ変更判定
+        if card_index > 0 and card_index % cards_per_page == 0:
+            c.showPage()
+        
+        # カード内でのインデックス
+        page_local_index = card_index % cards_per_page
+        col = page_local_index % 3       # 0, 1, 2 (左から右)
+        row = page_local_index // 3      # 0, 1, 2, 3, 4 (上から下)
+        
+        # カード左下の座標を計算
+        x = margin_left + col * card_width
+        y = page_height - margin_top - (row + 1) * card_height
+        
+        # カード背景（白）とボーダー
+        c.setStrokeColorRGB(0.8, 0.8, 0.8)
+        c.setLineWidth(0.5)
+        c.setFillColorRGB(1, 1, 1)  # 白
+        c.rect(x, y, card_width, card_height, fill=1, stroke=1)
+        
+        # QRコード生成と描画
+        try:
+            qr_url = f"{settings.BASE_URL}/cards/{card.serial_number}/"
+            qr_PIL = qrcode.QRCode(
+                version=1,
+                error_correction=qrcode.constants.ERROR_CORRECT_L,
+                box_size=4,
+                border=1,
+            )
+            qr_PIL.add_data(qr_url)
+            qr_PIL.make(fit=True)
+            qr_img = qr_PIL.make_image(fill_color="black", back_color="white")
+            
+            # テンポラリファイルに保存（ReportLabで読み込むため）
+            with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp:
+                qr_img.save(tmp.name, format='PNG')
+                qr_file = tmp.name
+            
+            # QRコードをカード内に描画（左側、中央縦配置）
+            qr_size = 28 * mm
+            qr_x = x + 2 * mm
+            qr_y = y + (card_height - qr_size) / 2
+            c.drawImage(qr_file, qr_x, qr_y, width=qr_size, height=qr_size, preserveAspectRatio=True)
+            
+            # テンポラリファイル削除
+            try:
+                os.unlink(qr_file)
+            except:
+                pass
+        except Exception as e:
+            # QRコード生成エラー時はスキップ（テキストのみ表示）
+            pass
+        
+        # テキスト描画のため色を黒に設定
+        c.setFillColorRGB(0, 0, 0)
+        
+        # シリアルナンバーを描画（右側）
+        text_x = x + 38 * mm
+        text_y = y + card_height - 6 * mm
+        
+        # ラベル
+        c.setFont("Helvetica-Bold", 8)
+        c.drawString(text_x, text_y, "Serial:")
+        
+        # シリアルナンバー（複数行）
+        c.setFont("Courier-Bold", 6)
+        serial = card.serial_number
+        # シリアルナンバーを折り返す（12文字ごと）
+        lines = [serial[i:i+12] for i in range(0, len(serial), 12)]
+        line_height = 4 * mm
+        for i, line in enumerate(lines):
+            line_y = text_y - (i + 1) * line_height
+            c.drawString(text_x, line_y, line)
+        
+        # 残高情報を下に表示（金額表記）
+        balance_y = y + 3 * mm
+        c.setFont("Helvetica-Bold", 9)
+        balance_text = f"¥{card.balance}"
+        c.drawString(text_x, balance_y, balance_text)
+        
+        # ステータスラベルを左下に表示
+        status_y = y + 2 * mm
+        c.setFont("Helvetica", 5)
+        c.drawString(x + 2 * mm, status_y, card.get_status_display())
+    
+    c.save()
+    buffer.seek(0)
+    
+    response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="cards.pdf"'
+    return response
 

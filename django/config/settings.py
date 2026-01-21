@@ -39,6 +39,7 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost:8080',
     'http://100.126.35.120:8080',
     'http://172.16.82.17:8080',
+    'http://mikan:8080',
 ]
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -144,6 +145,9 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

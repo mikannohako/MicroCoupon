@@ -66,6 +66,10 @@
             <h1>{% block page_title %}管理画面{% endblock %}</h1>
             <div class="topbar-actions">
                 <span class="user-name">{{ user.username }}</span>
+                <a href="{% url 'account:logout' %}" class="logout-btn" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; background: #edf2f7; color: #2d3748; text-decoration: none; border-radius: 6px; font-weight: 600;">
+                    <span class="material-icons" style="font-size: 18px;">logout</span>
+                    <span class="text">ログアウト</span>
+                </a>
             </div>
         </div>
 

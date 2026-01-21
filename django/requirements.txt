@@ -3,3 +3,4 @@ gunicorn
 psycopg[binary]
 qrcode[pil]
 Pillow
+reportlab
