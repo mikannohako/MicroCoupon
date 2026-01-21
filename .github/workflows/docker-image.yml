@@ -106,4 +106,6 @@ jobs:
             git pull origin main
             docker compose pull
             docker compose up -d
+            # マイグレーション実行
+            docker compose exec -T django python manage.py migrate
             docker image prune -f
