@@ -22,8 +22,10 @@ from django.views.generic import TemplateView
 import os
 from . import views as config_views
 
+ADMIN_PATH = os.environ.get('ADMIN_PATH', 'admin/')
+
 urlpatterns = [
-    path(os.environ.get('ADMIN_PATH'), admin.site.urls),
+    path(ADMIN_PATH, admin.site.urls),
     path('account/', include('account.urls')),
     path('manage/', include('dashboard.urls', namespace='dashboard')),
     path('transactions/', include('transactions.urls')),
