@@ -3,4 +3,5 @@ gunicorn
 psycopg[binary]
 qrcode[pil]
 Pillow
-reportlabpython-dotenv
+reportlab<6
+python-dotenv
