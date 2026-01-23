@@ -18,12 +18,23 @@ from django.contrib import admin
 from django.urls import path, include
 from django.shortcuts import redirect
 from account import views as account_views
+from django.views.generic import TemplateView
+import os
+from . import views as config_views
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path(os.environ.get('ADMIN_PATH'), admin.site.urls),
     path('account/', include('account.urls')),
     path('manage/', include('dashboard.urls', namespace='dashboard')),
     path('transactions/', include('transactions.urls')),
     path('cards/', include('microcoupon.urls')),
     path('', lambda request: redirect('account:login')),
+    
+    # エラーページテスト用（開発環境のみ）
+    path('test/404/', config_views.page_not_found),
+    path('test/500/', config_views.server_error),
 ]
+
+# カスタムエラーハンドラ
+handler404 = 'config.views.page_not_found'
+handler500 = 'config.views.server_error'

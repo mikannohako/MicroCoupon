@@ -1,0 +1,50 @@
+/* ============================================
+   Error Pages - 500 Internal Server Error Specific Styles
+   ============================================ */
+
+/* 500 固有のアイコンアニメーション */
+.error-icon {
+    color: #f5576c;
+    animation: shake 0.5s infinite;
+}
+
+@keyframes shake {
+    0%, 100% { transform: rotate(0deg); }
+    10%, 20% { transform: rotate(-2deg); }
+    30%, 50%, 70%, 90% { transform: rotate(2deg); }
+    40%, 60%, 80% { transform: rotate(-2deg); }
+}
+
+/* 500 固有のエラー詳細ボックス */
+.error-details {
+    background: #fff5f5;
+    border-left: 4px solid #f5576c;
+    color: #742a2a;
+}
+
+.error-details strong {
+    color: #5a1a1a;
+}
+
+/* ステータス情報ボックス */
+.status-info {
+    background: #f7fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    color: #4a5568;
+    font-family: 'Courier New', monospace;
+}
+
+/* ボタンのカラースキーム（500用） */
+.btn-primary {
+    background: #f5576c;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #f53860;
+    box-shadow: 0 10px 20px rgba(245, 87, 108, 0.3);
+}

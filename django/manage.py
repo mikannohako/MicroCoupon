@@ -6,6 +6,13 @@ import sys
 
 def main():
     """Run administrative tasks."""
+    # .env ファイルを読み込む
+    from pathlib import Path
+    env_path = Path(__file__).resolve().parent.parent / '.env'
+    if env_path.exists():
+        from dotenv import load_dotenv
+        load_dotenv(env_path)
+    
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
     try:
         from django.core.management import execute_from_command_line

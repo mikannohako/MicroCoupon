@@ -60,6 +60,11 @@ jobs:
         working-directory: django
         run: python manage.py test
 
+      - name: Collect static files
+        working-directory: django
+        run: python manage.py collectstatic --noinput --clear
+
+
   build_push:
     name: Build and Push Image
     runs-on: ubuntu-latest

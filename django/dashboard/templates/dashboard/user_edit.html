@@ -1,0 +1,252 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}ユーザー編集 - MicroCoupon 管理画面{% endblock %}
+
+{% block page_title %}ユーザー編集: {{ user.username }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <form method="post" class="form-container">
+        {% csrf_token %}
+        
+        <h2>ユーザー情報</h2>
+        
+        <div class="form-group">
+            <label>ユーザー名</label>
+            <div class="form-static">{{ user.username }}</div>
+            <small>ユーザー名は変更できません</small>
+        </div>
+
+        <div class="form-group">
+            <label for="email">メール</label>
+            <input type="email" id="email" name="email" value="{{ user.email }}" class="form-control">
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="first_name">姓</label>
+                <input type="text" id="first_name" name="first_name" value="{{ user.first_name }}" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="last_name">名</label>
+                <input type="text" id="last_name" name="last_name" value="{{ user.last_name }}" class="form-control">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="password">パスワード</label>
+            <input type="password" id="password" name="password" class="form-control">
+            <small>変更する場合のみ入力します（空白の場合は現在のパスワードを維持）</small>
+        </div>
+
+        <div class="form-group">
+            <label for="password_confirm">パスワード確認</label>
+            <input type="password" id="password_confirm" name="password_confirm" class="form-control">
+        </div>
+
+        <h2>権限設定</h2>
+
+        <div class="form-group">
+            <label for="user_type">ユーザータイプ <span class="required">*</span></label>
+            <select id="user_type" name="user_type" required class="form-control">
+                <option value="staff" {% if user.user_type == 'staff' %}selected{% endif %}>店員</option>
+                <option value="admin" {% if user.user_type == 'admin' %}selected{% endif %}>管理者</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="room">所属教室</label>
+            <select id="room" name="room" class="form-control">
+                <option value="">---</option>
+                {% for room in rooms %}
+                    <option value="{{ room.id }}" {% if user.room.id == room.id %}selected{% endif %}>{{ room.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <h2>その他</h2>
+        <div class="info-section">
+            <p><strong>登録日時:</strong> {{ user.date_joined|date:"Y年m月d日 H:i" }}</p>
+            <p><strong>最終ログイン:</strong> {% if user.last_login %}{{ user.last_login|date:"Y年m月d日 H:i" }}{% else %}<span class="text-muted">ログインなし</span>{% endif %}</p>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <span class="material-icons">save</span>
+                更新する
+            </button>
+            <a href="{% url 'dashboard:user_list' %}" class="btn btn-secondary">
+                <span class="material-icons">cancel</span>
+                キャンセル
+            </a>
+        </div>
+    </form>
+</div>
+
+<style>
+    .container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .form-container {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        padding: 30px;
+    }
+
+    h2 {
+        font-size: 18px;
+        color: #2d3748;
+        margin: 20px 0 15px 0;
+        border-bottom: 1px solid #e2e8f0;
+        padding-bottom: 10px;
+    }
+
+    h2:first-child {
+        margin-top: 0;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 600;
+        color: #2d3748;
+        font-size: 14px;
+    }
+
+    .required {
+        color: #f56565;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #cbd5e0;
+        border-radius: 6px;
+        font-size: 14px;
+        font-family: inherit;
+        transition: all 0.2s;
+        box-sizing: border-box;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #4299e1;
+        box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+    }
+
+    .form-static {
+        padding: 10px 12px;
+        background: #f7fafc;
+        border: 1px solid #cbd5e0;
+        border-radius: 6px;
+        font-size: 14px;
+        color: #2d3748;
+    }
+
+    small {
+        display: block;
+        margin-top: 4px;
+        color: #718096;
+        font-size: 12px;
+    }
+
+    .info-section {
+        background: #f7fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+
+    .info-section p {
+        margin: 8px 0;
+        font-size: 14px;
+        color: #4a5568;
+    }
+
+    .info-section strong {
+        color: #2d3748;
+    }
+
+    .text-muted {
+        color: #a0aec0;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 16px;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .btn-primary {
+        background: #4299e1;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #3182ce;
+    }
+
+    .btn-secondary {
+        background: #e2e8f0;
+        color: #2d3748;
+    }
+
+    .btn-secondary:hover {
+        background: #cbd5e0;
+    }
+
+    .btn span.material-icons {
+        font-size: 18px;
+    }
+
+    @media (max-width: 600px) {
+        .form-container {
+            padding: 20px;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .btn {
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}

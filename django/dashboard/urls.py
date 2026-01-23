@@ -26,4 +26,10 @@ urlpatterns = [
     path('products/<int:product_id>/', views.product_detail, name='product_detail'),
     path('products/<int:product_id>/edit/', views.product_edit, name='product_edit'),
     path('products/<int:product_id>/delete/', views.product_delete, name='product_delete'),
+    
+    # ユーザー管理
+    path('users/', views.user_list, name='user_list'),
+    path('users/create/', views.user_create, name='user_create'),
+    path('users/<int:user_id>/edit/', views.user_edit, name='user_edit'),
+    path('users/<int:user_id>/delete/', views.user_delete, name='user_delete'),
 ]

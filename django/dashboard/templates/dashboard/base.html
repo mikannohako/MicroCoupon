@@ -38,10 +38,9 @@
                 <span class="material-icons">shopping_cart</span>
                 <span class="text">商品管理</span>
             </a>
-            <div class="nav-divider"></div>
-            <a href="/admin/" class="nav-item" target="_blank">
-                <span class="material-icons">settings</span>
-                <span class="text">Django Admin</span>
+            <a href="{% url 'dashboard:user_list' %}" class="nav-item {% if 'user' in request.resolver_match.url_name %}active{% endif %}">
+                <span class="material-icons">people</span>
+                <span class="text">ユーザー管理</span>
             </a>
         </nav>
         <div class="sidebar-footer">

@@ -1,0 +1,225 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}ユーザー管理 - MicroCoupon 管理画面{% endblock %}
+
+{% block page_title %}ユーザー管理{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h2>ユーザー一覧</h2>
+        <a href="{% url 'dashboard:user_create' %}" class="btn btn-primary">
+            <span class="material-icons">add</span>
+            新規ユーザー作成
+        </a>
+    </div>
+
+    {% if users %}
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ユーザー名</th>
+                    <th>メール</th>
+                    <th>氏名</th>
+                    <th>ユーザータイプ</th>
+                    <th>所属教室</th>
+                    <th>登録日時</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td><strong>{{ user.username }}</strong></td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.get_full_name }}</td>
+                    <td>
+                        <span class="badge {% if user.user_type == 'admin' %}badge-danger{% else %}badge-info{% endif %}">
+                            {{ user.get_user_type_display }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if user.room %}
+                            {{ user.room.name }}
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ user.date_joined|date:"Y年m月d日" }}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{% url 'dashboard:user_edit' user.id %}" class="btn btn-sm btn-info">
+                                <span class="material-icons">edit</span>
+                            </a>
+                            <a href="{% url 'dashboard:user_delete' user.id %}" class="btn btn-sm btn-danger">
+                                <span class="material-icons">delete</span>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        ユーザーがまだ作成されていません。
+        <a href="{% url 'dashboard:user_create' %}">新規ユーザーを作成する</a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        border-bottom: 1px solid #e2e8f0;
+        padding-bottom: 20px;
+    }
+
+    .page-header h2 {
+        margin: 0;
+        font-size: 24px;
+        color: #2d3748;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 16px;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .btn-primary {
+        background: #4299e1;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #3182ce;
+    }
+
+    .btn-sm {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+
+    .btn-info {
+        background: #4299e1;
+        color: white;
+    }
+
+    .btn-danger {
+        background: #f56565;
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background: #e53e3e;
+    }
+
+    .btn span.material-icons {
+        font-size: 18px;
+    }
+
+    .btn-sm span.material-icons {
+        font-size: 16px;
+    }
+
+    .table-container {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+
+    .data-table thead {
+        background: #f7fafc;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    .data-table th {
+        padding: 12px;
+        text-align: left;
+        font-weight: 600;
+        color: #2d3748;
+    }
+
+    .data-table td {
+        padding: 12px;
+        border-bottom: 1px solid #e2e8f0;
+        color: #4a5568;
+    }
+
+    .data-table tbody tr:hover {
+        background: #f7fafc;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .badge-danger {
+        background: #fed7d7;
+        color: #742a2a;
+    }
+
+    .badge-info {
+        background: #bee3f8;
+        color: #2c5282;
+    }
+
+    .text-muted {
+        color: #a0aec0;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 6px;
+    }
+
+    .alert {
+        padding: 16px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+    }
+
+    .alert-info {
+        background: #c6f6d5;
+        color: #22543d;
+        border-left: 4px solid #48bb78;
+    }
+
+    .alert a {
+        color: #22543d;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}

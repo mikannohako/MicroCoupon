@@ -1,0 +1,45 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>500 Internal Server Error - MicroCoupon</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="{% static 'error-pages/css/error-base.css' %}">
+    <link rel="stylesheet" href="{% static 'error-pages/css/error-500.css' %}">
+</head>
+<body>
+    <div class="error-container">
+        <span class="material-icons error-icon">error_outline</span>
+        <div class="error-code">エラー</div>
+        <h1>500</h1>
+        <p>申し訳ありません。サーバー側でエラーが発生しました。</p>
+
+        <div class="error-details">
+            <strong>何が起きたのか？</strong>
+            サーバーで予期しないエラーが発生しました。管理者に通知されました。
+        </div>
+
+        <div class="status-info">
+            Internal Server Error (500)
+        </div>
+
+        <div class="actions">
+            <a href="/" class="btn btn-primary">
+                <span class="material-icons">home</span>
+                ホームに戻る
+            </a>
+            <button onclick="history.back()" class="btn btn-secondary">
+                <span class="material-icons">arrow_back</span>
+                前のページに戻る
+            </button>
+        </div>
+
+        <div class="footer">
+            <p>MicroCoupon &copy; 2026 - All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -5,7 +5,7 @@ from django.conf import settings
 from django.http import HttpResponse
 from microcoupon.models import Card
 from products.models import Product
-from account.models import Room
+from account.models import Room, User
 from account.decorators import admin_required
 from transactions.models import Transaction, TransactionItem
 import uuid
@@ -461,4 +461,132 @@ def generate_cards_pdf(cards):
     response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="cards.pdf"'
     return response
+
+
+# ユーザー管理ビュー
+
+@admin_required
+def user_list(request):
+    """ユーザー一覧"""
+    users = User.objects.all().order_by('-date_joined')
+    context = {'users': users}
+    return render(request, 'dashboard/user_list.html', context)
+
+
+@admin_required
+def user_create(request):
+    """ユーザー作成"""
+    if request.method == 'POST':
+        username = request.POST.get('username', '').strip()
+        email = request.POST.get('email', '').strip()
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        password = request.POST.get('password', '')
+        password_confirm = request.POST.get('password_confirm', '')
+        user_type = request.POST.get('user_type', 'staff')
+        room_id = request.POST.get('room')
+        
+        try:
+            # バリデーション
+            if not username:
+                messages.error(request, 'ユーザー名を入力してください')
+                return render(request, 'dashboard/user_create.html', {'rooms': Room.objects.filter(is_active=True)})
+            
+            if not password:
+                messages.error(request, 'パスワードを入力してください')
+                return render(request, 'dashboard/user_create.html', {'rooms': Room.objects.filter(is_active=True)})
+            
+            if password != password_confirm:
+                messages.error(request, 'パスワードと確認パスワードが一致しません')
+                return render(request, 'dashboard/user_create.html', {'rooms': Room.objects.filter(is_active=True)})
+            
+            if User.objects.filter(username=username).exists():
+                messages.error(request, 'このユーザー名は既に使用されています')
+                return render(request, 'dashboard/user_create.html', {'rooms': Room.objects.filter(is_active=True)})
+            
+            # ユーザー作成
+            room = None
+            if room_id:
+                room = get_object_or_404(Room, id=room_id)
+            
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                first_name=first_name,
+                last_name=last_name,
+                password=password,
+                user_type=user_type,
+                room=room
+            )
+            
+            messages.success(request, f'ユーザー「{username}」を作成しました')
+            return redirect('dashboard:user_list')
+        except Exception as e:
+            messages.error(request, f'エラー: {str(e)}')
+    
+    rooms = Room.objects.filter(is_active=True)
+    return render(request, 'dashboard/user_create.html', {'rooms': rooms})
+
+
+@admin_required
+def user_edit(request, user_id):
+    """ユーザー編集"""
+    user = get_object_or_404(User, id=user_id)
+    
+    if request.method == 'POST':
+        email = request.POST.get('email', '').strip()
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        password = request.POST.get('password', '')
+        password_confirm = request.POST.get('password_confirm', '')
+        user_type = request.POST.get('user_type', 'staff')
+        room_id = request.POST.get('room')
+        
+        try:
+            # パスワード確認（変更時のみ）
+            if password:
+                if password != password_confirm:
+                    messages.error(request, 'パスワードと確認パスワードが一致しません')
+                    rooms = Room.objects.filter(is_active=True)
+                    return render(request, 'dashboard/user_edit.html', {'user': user, 'rooms': rooms})
+                user.set_password(password)
+            
+            # その他の情報を更新
+            user.email = email
+            user.first_name = first_name
+            user.last_name = last_name
+            user.user_type = user_type
+            
+            if room_id:
+                user.room = get_object_or_404(Room, id=room_id)
+            else:
+                user.room = None
+            
+            user.save()
+            messages.success(request, 'ユーザー情報を更新しました')
+            return redirect('dashboard:user_list')
+        except Exception as e:
+            messages.error(request, f'エラー: {str(e)}')
+    
+    rooms = Room.objects.filter(is_active=True)
+    return render(request, 'dashboard/user_edit.html', {'user': user, 'rooms': rooms})
+
+
+@admin_required
+def user_delete(request, user_id):
+    """ユーザー削除"""
+    user = get_object_or_404(User, id=user_id)
+    
+    # 自分自身は削除できない
+    if user.id == request.user.id:
+        messages.error(request, '自分自身は削除できません')
+        return redirect('dashboard:user_list')
+    
+    if request.method == 'POST':
+        username = user.username
+        user.delete()
+        messages.success(request, f'ユーザー「{username}」を削除しました')
+        return redirect('dashboard:user_list')
+    
+    return render(request, 'dashboard/user_delete_confirm.html', {'user': user})
 
