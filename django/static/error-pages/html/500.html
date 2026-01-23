@@ -6,8 +6,161 @@
     <title>500 Internal Server Error - MicroCoupon</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-    <link rel="stylesheet" href="/static/error-pages/css/error-base.css">
-    <link rel="stylesheet" href="/static/error-pages/css/error-500.css">
+    <style>
+        /* ============================================
+           Error Pages - Shared Styles
+           ============================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .error-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 60px 40px;
+            text-align: center;
+        }
+        .error-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            display: block;
+            color: #f5576c;
+            animation: shake 0.5s infinite;
+        }
+        @keyframes shake {
+            0%, 100% { transform: rotate(0deg); }
+            10%, 20% { transform: rotate(-2deg); }
+            30%, 50%, 70%, 90% { transform: rotate(2deg); }
+            40%, 60%, 80% { transform: rotate(-2deg); }
+        }
+        h1 {
+            font-size: 48px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 10px;
+            letter-spacing: -1px;
+        }
+        .error-code {
+            font-size: 14px;
+            color: #a0aec0;
+            margin-bottom: 20px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        p {
+            font-size: 16px;
+            color: #4a5568;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        .error-details {
+            padding: 16px;
+            margin-bottom: 30px;
+            border-radius: 6px;
+            text-align: left;
+            font-size: 14px;
+            background: #fff5f5;
+            border-left: 4px solid #f5576c;
+            color: #742a2a;
+        }
+        .error-details strong {
+            display: block;
+            margin-bottom: 8px;
+            color: #5a1a1a;
+        }
+        .status-info {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #4a5568;
+            font-family: 'Courier New', monospace;
+        }
+        .actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .btn span.material-icons {
+            font-size: 18px;
+        }
+        .btn-primary {
+            background: #f5576c;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #f53860;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(245, 87, 108, 0.3);
+        }
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #2d3748;
+        }
+        .btn-secondary:hover {
+            background: #cbd5e0;
+            transform: translateY(-2px);
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            font-size: 12px;
+            color: #a0aec0;
+        }
+        @media (max-width: 600px) {
+            .error-container {
+                padding: 40px 24px;
+            }
+            h1 {
+                font-size: 36px;
+            }
+            .error-icon {
+                font-size: 60px;
+            }
+            p {
+                font-size: 14px;
+            }
+            .actions {
+                flex-direction: column;
+            }
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="error-container">
@@ -39,6 +192,9 @@
         <div class="footer">
             <p>MicroCoupon &copy; 2026 - All rights reserved.</p>
         </div>
+    </div>
+</body>
+</html>
     </div>
 </body>
 </html>
