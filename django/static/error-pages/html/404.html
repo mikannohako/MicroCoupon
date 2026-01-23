@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 Not Found - MicroCoupon</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="/static/error-pages/css/error-base.css">
+    <link rel="stylesheet" href="/static/error-pages/css/error-404.css">
+</head>
+<body>
+    <div class="error-container">
+        <span class="material-icons error-icon">search_off</span>
+        <div class="error-code">エラー</div>
+        <h1>404</h1>
+        <p>申し訳ありません。お探しのページが見つかりません。</p>
+
+        <div class="error-details">
+            <strong>何が起きたのか？</strong>
+            リクエストされたページは削除された、移動した、または存在しない可能性があります。
+        </div>
+
+        <div class="actions">
+            <a href="/" class="btn btn-primary">
+                <span class="material-icons">home</span>
+                ホームに戻る
+            </a>
+            <button onclick="history.back()" class="btn btn-secondary">
+                <span class="material-icons">arrow_back</span>
+                前のページに戻る
+            </button>
+        </div>
+
+        <div class="footer">
+            <p>MicroCoupon &copy; 2026 - All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
