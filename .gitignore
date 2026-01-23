@@ -57,3 +57,5 @@ coverage.xml
 # Backup files
 *.bak
 *~
+
+.htpasswd
