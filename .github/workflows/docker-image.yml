@@ -113,4 +113,6 @@ jobs:
             docker compose up -d
             # マイグレーション実行
             docker compose exec -T django python manage.py migrate
+            # 静的ファイル生成
+            docker compose exec -T django python manage.py collectstatic --noinput --clear
             docker image prune -f

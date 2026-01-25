@@ -19,13 +19,15 @@
 VPS上でデプロイする場合、以下の手順を実行してください：
 
 1. **htpasswdファイルの作成**:
+
 ```bash
 mkdir -p /home/deploy
 docker run --rm httpd:2.4-alpine htpasswd -nbB admin YOUR_PASSWORD > /home/deploy/.htpasswd
 chmod 644 /home/deploy/.htpasswd
 ```
 
-2. **.env ファイルの設定**:
+1. **.env ファイルの設定**:
+
 ```env
 # VPS上のホスト側のhtpasswdファイルパス
 BASIC_AUTH_FILE_HOST=/home/deploy/.htpasswd
