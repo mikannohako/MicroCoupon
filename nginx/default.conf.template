@@ -1,6 +1,22 @@
 server {
     listen 80;
 
+    # セキュリティヘッダー（全レスポンスに適用）
+    # HSTS: HTTPS接続を強制（本番環境でHTTPS有効時のみ効果）
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    
+    # CSP: XSS攻撃を防ぐコンテンツセキュリティポリシー
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; frame-ancestors 'self';" always;
+    
+    # Permissions-Policy: ブラウザAPIの使用制限
+    add_header Permissions-Policy "geolocation=(), microphone=(), camera=()" always;
+    
+    # その他の推奨セキュリティヘッダー
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
     # エラーページの設定
     error_page 401 /401.html;
     error_page 404 /404.html;
