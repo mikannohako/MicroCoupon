@@ -1,48 +1,208 @@
 # MicroCoupon
 
-これはDjango、Nginx、Postgresqlを利用した小規模電子クーポンの発行、減算、管理システムです。
-このプロジェクトは以下の要件で運用することを想定しています。
-このプロジェクトには以下の機能があります。
+Django、Nginx、PostgreSQLを利用した小規模電子クーポンの発行・管理・決済システムです。  
+店舗での電子クーポン発行、残高管理、商品販売、決済処理をWebアプリケーションで実現します。
 
-- 電子クーポンの発行
-  - 印刷用PDFデータの出力
-  - 電子データとしての発行
-- 電子クーポンの減算
-  - レジページから商品を選んで支払いをすることで電子クーポンの減算ができます。
-- 電子クーポン残高の確認
-- 電子クーポンのアクティベート
+## 主な機能
 
-## VPS デプロイメント設定
+### 電子クーポン管理
+- **カード発行**: QRコード付き電子クーポンカードの作成
+  - 印刷用PDFデータの生成（QRコード、シリアル番号付き）
+  - デジタル形式での発行
+- **カードアクティベート**: 発行後のカード有効化処理
+- **残高確認**: カード残高の公開照会機能（認証不要）
+- **カード管理**: カードの詳細情報、利用履歴の閲覧・編集
+
+### 商品管理
+- 商品の登録・編集・削除
+- 商品一覧表示
+- 価格・在庫情報の管理
+
+### 販売・決済管理
+- レジ機能（POS）での商品選択・決済処理
+- カード残高からの自動減算
+- 取引履歴の記録・閲覧
+- 売上データの管理
+
+### ダッシュボード
+- 統合管理画面
+- カード、商品、売上の総合管理
+- 各種操作へのナビゲーション
+
+## 技術スタック
+
+### バックエンド
+- **Django 5.x**: Webアプリケーションフレームワーク
+- **PostgreSQL 16**: データベース
+- **Python 3.x**: プログラミング言語
+
+### フロントエンド
+- HTML/CSS/JavaScript
+- QRコード生成ライブラリ
+
+### インフラ
+- **Nginx**: リバースプロキシ・Webサーバー
+- **Docker & Docker Compose**: コンテナ化とオーケストレーション
+- **Gunicorn**: WSGIサーバー（本番環境用）
+
+### 主要ライブラリ
+- `psycopg`: PostgreSQLアダプタ
+- `qrcode`: QRコード生成
+- `Pillow`: 画像処理
+- `reportlab`: PDF生成
+- `python-dotenv`: 環境変数管理
+
+## プロジェクト構成
+
+```
+MicroCoupon/
+├── django/                     # Djangoアプリケーション
+│   ├── account/               # ユーザー認証
+│   ├── microcoupon/           # クーポンカード管理
+│   ├── products/              # 商品管理
+│   ├── dashboard/             # 管理ダッシュボード
+│   ├── transactions/          # 取引・決済管理
+│   ├── config/                # Django設定
+│   ├── static/                # 静的ファイル
+│   ├── staticfiles/           # 収集された静的ファイル
+│   ├── templates/             # グローバルテンプレート
+│   ├── requirements.txt       # Python依存パッケージ
+│   └── Dockerfile             # Djangoコンテナ定義
+├── nginx/                     # Nginx設定
+│   └── default.conf           # Nginx設定ファイル
+├── docker-compose.yml         # Docker Compose設定
+└── .env                       # 環境変数（要作成）
+```
+
+## セットアップ
+
+### 前提条件
+- Docker及びDocker Composeのインストール
+- Git
+
+### 環境変数の設定
+
+プロジェクトルートに`.env`ファイルを作成してください：
+
+```env
+# データベース設定
+POSTGRES_DB=microcoupon_db
+POSTGRES_USER=microcoupon_user
+POSTGRES_PASSWORD=your_secure_password
+
+# Django設定
+SECRET_KEY=your-secret-key-here
+DEBUG=True
+DOMAIN_NAME=localhost:8080
+BASE_URL=http://localhost:8080
+
+# VPS環境での設定（オプション）
+BASIC_AUTH_FILE_HOST=/home/deploy/.htpasswd
+```
+
+### ローカル開発環境での起動
+
+1. **リポジトリのクローン**:
+```bash
+git clone <repository-url>
+cd MicroCoupon
+```
+
+2. **Docker Composeで起動**:
+```bash
+docker compose up -d
+```
+
+3. **データベースのマイグレーション**:
+```bash
+docker compose exec django python manage.py migrate
+```
+
+4. **管理者ユーザーの作成**:
+```bash
+docker compose exec django python manage.py createsuperuser
+```
+
+5. **静的ファイルの収集**:
+```bash
+docker compose exec django python manage.py collectstatic --noinput
+```
+
+6. **アクセス**:
+- アプリケーション: http://localhost:8080
+- 管理画面: http://localhost:8080/admin
+
+## VPS デプロイメント
 
 ### Basic認証の設定
 
-VPS上でデプロイする場合、以下の手順を実行してください：
+本番環境でBasic認証を有効にする場合：
 
 1. **htpasswdファイルの作成**:
-
 ```bash
 mkdir -p /home/deploy
 docker run --rm httpd:2.4-alpine htpasswd -nbB admin YOUR_PASSWORD > /home/deploy/.htpasswd
 chmod 644 /home/deploy/.htpasswd
 ```
 
-1. **.env ファイルの設定**:
-
+2. **.envファイルに追加**:
 ```env
-# VPS上のホスト側のhtpasswdファイルパス
 BASIC_AUTH_FILE_HOST=/home/deploy/.htpasswd
 ```
 
-### エラーページ CSS の確認
-
-VPSデプロイ後、Nginxコンテナ内で以下を確認してください：
-
+3. **Nginxコンテナでの確認**:
 ```bash
-# staticfiles の確認
+# staticfilesの確認
 docker compose exec nginx ls -la /app/staticfiles/error-pages/
 
-# htpasswd ファイルの確認  
+# htpasswdファイルの確認  
 docker compose exec nginx cat /etc/nginx/.htpasswd
 ```
 
-両方のファイルが正しくマウントされている必要があります。
+### 本番環境設定
+
+本番環境では以下を変更してください：
+
+```env
+DEBUG=False
+SECRET_KEY=<長くランダムな文字列>
+DOMAIN_NAME=<実際のドメイン名>
+BASE_URL=https://<実際のドメイン名>
+```
+
+## 開発
+
+### マイグレーションの作成と適用
+
+```bash
+# マイグレーションファイルの生成
+docker compose exec django python manage.py makemigrations
+
+# マイグレーションの適用
+docker compose exec django python manage.py migrate
+```
+
+### ログの確認
+
+```bash
+# すべてのコンテナのログ
+docker compose logs -f
+
+# 特定のサービスのログ
+docker compose logs -f django
+docker compose logs -f nginx
+docker compose logs -f db
+```
+
+## ライセンス
+
+このプロジェクトはMITライセンスの下でライセンスされています。詳細は[LICENSE](LICENSE)ファイルをご確認ください。
+
+## コントリビューション
+
+バグ報告や機能リクエストはIssuesにてお願いします。  
+プルリクエストも歓迎します。
+
+## サポート
+
+問題が発生した場合は、[ERROR_PAGES.md](ERROR_PAGES.md)を参照してください。

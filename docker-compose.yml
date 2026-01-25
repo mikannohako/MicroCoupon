@@ -5,7 +5,7 @@ services:
     build: 
       context: ./django
       dockerfile: Dockerfile
-    container_name: django
+    container_name: microcoupon-django
     command:  >
       sh -c "
       python manage.py runserver 0.0.0.0:8000
@@ -30,7 +30,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    container_name: postgres
+    container_name: microcoupon-postgres
     env_file:
       - .env
     environment:
@@ -42,7 +42,7 @@ services:
 
   nginx:
     image:  nginx:latest
-    container_name: nginx
+    container_name: microcoupon-nginx
     ports:
       - "0.0.0.0:8080:80"
     volumes:
