@@ -3,22 +3,215 @@
 {% block title %}カード編集 - MicroCoupon{% endblock %}
 {% block page_title %}カード編集{% endblock %}
 
+{% block extra_css %}
+<style>
+.form-page {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.form-card {
+    background: white;
+    border-radius: 12px;
+    padding: 28px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+}
+
+.form-card h2 {
+    color: #2d3748;
+    font-size: 20px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    color: #2d3748;
+    transition: all 0.2s;
+    background: white;
+    box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-group input:disabled {
+    background: #f7fafc;
+    cursor: not-allowed;
+    color: #718096;
+}
+
+.form-group small {
+    display: block;
+    color: #718096;
+    font-size: 12px;
+    margin-top: 6px;
+}
+
+.form-group small[style*="color: #e53e3e"] {
+    color: #e53e3e !important;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: #2d3748;
+    cursor: pointer;
+    user-select: none;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: auto;
+    flex-shrink: 0;
+    margin: 0;
+}
+
+.qr-code-section {
+    background: #f7fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    margin: 24px 0;
+}
+
+.qr-code-section h3 {
+    color: #2d3748;
+    font-size: 16px;
+    margin: 0 0 16px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.qr-code-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.qr-code-image {
+    max-width: 200px;
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    padding: 8px;
+    background: white;
+}
+
+.qr-code-url {
+    color: #718096;
+    font-size: 12px;
+    word-break: break-all;
+    margin: 0;
+}
+
+.qr-code-section small {
+    color: #a0aec0;
+    font-size: 11px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 28px;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.btn-primary {
+    background: #667eea;
+    color: white;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.6);
+}
+
+.btn-secondary {
+    background: #e2e8f0;
+    color: #2d3748;
+    box-shadow: none;
+}
+
+.btn-secondary:hover {
+    background: #cbd5e0;
+}
+
+.required {
+    color: #f56565;
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="form-container">
+<div class="form-page">
     <div class="form-card">
+        <h2>
+            <span class="material-icons" style="color: #667eea; font-size: 28px;">edit_card</span>
+            カードを編集
+        </h2>
         <form method="post">
             {% csrf_token %}
             
             <div class="form-group">
                 <label>シリアル番号</label>
-                <input type="text" value="{{ card.serial_number }}" disabled style="background: #f7fafc; cursor: not-allowed;">
+                <input type="text" value="{{ card.serial_number }}" disabled>
                 <small>シリアル番号は変更できません</small>
             </div>
             
             <div class="form-group">
-                <label for="balance">残高(pt) <span class="required">*</span></label>
+                <label for="balance">残高(pt)<span class="required"> *</span></label>
                 <input type="number" name="balance" id="balance" value="{{ card.balance }}" required min="0" max="{{ card.balance }}">
-                <small style="color: #e53e3e;">※ 残高を増やすことはできません（減少のみ可能）</small>
+                <small>残高を増やすことはできません（減少のみ可能）</small>
             </div>
             
             <div class="form-group">
@@ -38,11 +231,12 @@
                 <small>ロックすると、このカードは使用できなくなります</small>
             </div>
             
-            <div class="detail-divider" style="margin: 20px 0;"></div>
-            
             <!-- QRコード表示 -->
             <div class="qr-code-section">
-                <h3>QRコード</h3>
+                <h3>
+                    <span class="material-icons" style="color: #667eea; font-size: 20px;">qr_code_2</span>
+                    QRコード
+                </h3>
                 <div class="qr-code-container">
                     <img src="{{ qr_image }}" alt="QRコード" class="qr-code-image">
                     <p class="qr-code-url">{{ qr_url }}</p>
@@ -50,9 +244,12 @@
                 </div>
             </div>
             
-            <div class="form-actions" style="margin-top: 20px;">
+            <div class="form-actions">
                 <a href="{% url 'dashboard:card_detail' card.id %}" class="btn btn-secondary">キャンセル</a>
-                <button type="submit" class="btn btn-primary">更新</button>
+                <button type="submit" class="btn btn-primary">
+                    <span class="material-icons">save</span>
+                    <span>更新</span>
+                </button>
             </div>
         </form>
     </div>

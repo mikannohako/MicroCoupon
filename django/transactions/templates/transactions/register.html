@@ -17,10 +17,10 @@
             <h1>レジ</h1>
         </div>
         <div class="user-section">
-            <span class="user-name">
-                <span class="material-icons" style="font-size: 18px; vertical-align: middle;">account_circle</span>
-                {{ user.username }}
-            </span>
+            <div class="user-badge">
+                <span class="material-icons">account_circle</span>
+                <span class="user-name">{{ user.username }}</span>
+            </div>
             <a href="{% url 'transactions:history' %}" class="history-btn">
                 <span class="material-icons">receipt_long</span>
                 <span>決済履歴</span>
@@ -31,6 +31,25 @@
             </a>
         </div>
     </div>
+    
+    <!-- メッセージ表示 -->
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            <span class="material-icons">
+                {% if message.tags == 'error' %}error
+                {% elif message.tags == 'success' %}check_circle
+                {% else %}info{% endif %}
+            </span>
+            <span>{{ message }}</span>
+            <button onclick="this.parentElement.remove()">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
     
     <div class="register-container">
         <!-- 商品選択エリア -->

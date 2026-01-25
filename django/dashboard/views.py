@@ -74,8 +74,10 @@ def card_create(request):
             card = Card.objects.create(balance=int(balance))
             messages.success(request, 'カードを作成しました')
             return redirect('dashboard:card_detail', card_id=card.id)
+        except ValueError:
+            messages.error(request, 'エラー: 残高に無効な値が入力されています')
         except Exception as e:
-            messages.error(request, f'エラー: {str(e)}')
+            messages.error(request, f'カードの作成に失敗しました: {str(e)}')
     return render(request, 'dashboard/card_create.html')
 
 

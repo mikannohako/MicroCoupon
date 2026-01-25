@@ -3,9 +3,299 @@
 {% block title %}カード一覧 - MicroCoupon{% endblock %}
 {% block page_title %}カード一覧{% endblock %}
 
+{% block extra_css %}
+<style>
+.card-list-page {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.list-header {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.btn-primary {
+    background: #667eea;
+    color: white;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.6);
+}
+
+.btn-secondary {
+    background: #e2e8f0;
+    color: #2d3748;
+}
+
+.btn-secondary:hover {
+    background: #cbd5e0;
+}
+
+.btn-danger {
+    background: #f56565;
+    color: white;
+    box-shadow: 0 4px 12px rgba(245, 101, 101, 0.4);
+}
+
+.btn-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(245, 101, 101, 0.6);
+}
+
+.filter-form {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    flex: 1;
+}
+
+.filter-form select,
+.filter-form input {
+    padding: 10px 14px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    background: white;
+    color: #2d3748;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+
+.filter-form select:hover,
+.filter-form input:hover {
+    border-color: #cbd5e0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.filter-form select:focus,
+.filter-form input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.filter-form input {
+    flex: 1;
+    min-width: 200px;
+}
+
+.bulk-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s;
+}
+
+.card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.card strong {
+    font-size: 15px;
+    color: #2d3748;
+}
+
+.card label {
+    font-size: 12px;
+    color: #4a5568;
+}
+
+.card input,
+.card select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+
+.card input:focus,
+.card select:focus {
+    outline: none;
+    border-color: #4a5f7f;
+    box-shadow: 0 0 0 2px rgba(74, 95, 127, 0.1);
+}
+
+.card .btn {
+    margin-top: 10px;
+}
+
+.table-container {
+    background: white;
+    border-radius: 12px;
+    overflow-x: auto;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 800px;
+}
+
+.data-table thead {
+    background: linear-gradient(90deg, #f7fafc 0%, #edf2f7 100%);
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.data-table th {
+    padding: 14px;
+    text-align: left;
+    font-weight: 600;
+    color: #2d3748;
+    white-space: nowrap;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.data-table td {
+    padding: 14px;
+    border-bottom: 1px solid #e2e8f0;
+    color: #4a5568;
+}
+
+.data-table tbody tr:hover {
+    background: #f7fafc;
+}
+
+code {
+    background: #f7fafc;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    color: #2d3748;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.status-unused {
+    background: #edf2f7;
+    color: #2d3748;
+}
+
+.status-active {
+    background: linear-gradient(135deg, #4a5f7f 0%, #5a6b8f 100%);
+    color: white;
+}
+
+.status-used {
+    background: #e2e8f0;
+    color: #718096;
+}
+
+.action-btns {
+    display: flex;
+    gap: 6px;
+}
+
+.btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: white;
+    color: #4a5568;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-icon:hover {
+    background: #edf2f7;
+    border-color: #cbd5e0;
+    transform: translateY(-1px);
+}
+
+.btn-icon .material-icons {
+    font-size: 18px;
+}
+
+.no-data {
+    text-align: center;
+    padding: 40px 20px;
+    color: #a0aec0;
+}
+
+@media (max-width: 768px) {
+    .list-header {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .filter-form {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .filter-form input {
+        min-width: 100%;
+    }
+
+    .bulk-actions {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: 10px;
+        font-size: 12px;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="card-list-page">
-    <div class="list-header" style="flex-wrap: wrap; gap: 12px;">
+    <div class="list-header">
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
             <a href="{% url 'dashboard:card_create' %}" class="btn btn-primary">
                 <span class="material-icons">add</span>
@@ -26,26 +316,26 @@
         </form>
     </div>
 
-    <div class="bulk-actions" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-bottom: 14px;">
-        <form method="post" action="{% url 'dashboard:card_bulk_create' %}" class="card" style="padding: 12px; border: 1px solid #e2e8f0; border-radius: 12px; background: white;">
+    <div class="bulk-actions">
+        <form method="post" action="{% url 'dashboard:card_bulk_create' %}" class="card">
             {% csrf_token %}
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                <span class="material-icons" style="color: #2f855a;">library_add</span>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                <span class="material-icons" style="color: #4a6f5f; font-size: 24px;">library_add</span>
                 <strong>カード一括発行</strong>
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                 <div>
-                    <label style="font-size: 12px; color: #4a5568;">枚数</label>
-                    <input type="number" name="count" min="1" value="10" required style="width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px;">
+                    <label>枚数</label>
+                    <input type="number" name="count" min="1" value="10" required>
                 </div>
                 <div>
-                    <label style="font-size: 12px; color: #4a5568;">初期残高(pt)</label>
-                    <input type="number" name="balance" min="0" value="0" required style="width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px;">
+                    <label>初期残高(pt)</label>
+                    <input type="number" name="balance" min="0" value="0" required>
                 </div>
             </div>
             <div style="margin-top: 10px;">
-                <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #4a5568; cursor: pointer;">
-                    <input type="checkbox" name="export_pdf" style="cursor: pointer;">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" name="export_pdf" style="width: auto; flex-shrink: 0;">
                     <span>PDFをダウンロード（名刺サイズ）</span>
                 </label>
             </div>
@@ -55,24 +345,24 @@
             </button>
         </form>
 
-        <form method="post" action="{% url 'dashboard:card_bulk_delete' %}" class="card" style="padding: 12px; border: 1px solid #e2e8f0; border-radius: 12px; background: white;">
+        <form method="post" action="{% url 'dashboard:card_bulk_delete' %}" class="card">
             {% csrf_token %}
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                <span class="material-icons" style="color: #c53030;">delete_sweep</span>
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                <span class="material-icons" style="color: #8b5a5a; font-size: 24px;">delete_sweep</span>
                 <strong>カード一括削除</strong>
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                 <div>
-                    <label style="font-size: 12px; color: #4a5568;">対象ステータス</label>
-                    <select name="delete_status" style="width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px;">
+                    <label>対象ステータス</label>
+                    <select name="delete_status">
                         <option value="unused">未使用のみ</option>
                         <option value="active">有効</option>
                         <option value="used">使用済み</option>
                     </select>
                 </div>
                 <div>
-                    <label style="font-size: 12px; color: #4a5568;">削除枚数（空で全件）</label>
-                    <input type="number" name="delete_count" min="1" placeholder="例: 20" style="width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px;">
+                    <label>削除枚数（空で全件）</label>
+                    <input type="number" name="delete_count" min="1" placeholder="例: 20">
                 </div>
             </div>
             <button type="submit" class="btn btn-danger" style="margin-top: 10px; width: 100%;" onclick="return confirm('選択した条件のカードを削除します。よろしいですか？');">

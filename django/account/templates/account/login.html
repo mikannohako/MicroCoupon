@@ -15,7 +15,7 @@
             <p>ログインしてください</p>
         </div>
 
-        {% if messages %}
+        {% if messages and request.method == 'POST' %}
         <div class="messages">
             {% for message in messages %}
             <div class="alert alert-{{ message.tags }}">

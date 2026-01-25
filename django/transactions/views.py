@@ -254,8 +254,10 @@ def register_product_create(request):
             )
             messages.success(request, f'商品「{product.name}」を追加しました')
             return redirect('transactions:register')
+        except ValueError:
+            messages.error(request, 'エラー: 価格または表示順に無効な値が入力されています')
         except Exception as e:
-            messages.error(request, f'エラー: {str(e)}')
+            messages.error(request, f'商品の追加に失敗しました: {str(e)}')
     
     return redirect('transactions:register')
 
@@ -287,8 +289,10 @@ def register_product_edit(request, product_id):
             
             messages.success(request, f'商品「{product.name}」を更新しました')
             return redirect('transactions:register')
+        except ValueError:
+            messages.error(request, 'エラー: 価格または表示順に無効な値が入力されています')
         except Exception as e:
-            messages.error(request, f'エラー: {str(e)}')
+            messages.error(request, f'商品の更新に失敗しました: {str(e)}')
     
     return redirect('transactions:register')
 

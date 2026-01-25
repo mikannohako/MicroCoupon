@@ -3,20 +3,239 @@
 {% block title %}カード詳細 - MicroCoupon{% endblock %}
 {% block page_title %}カード詳細{% endblock %}
 
+{% block extra_css %}
+<style>
+.detail-page {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.detail-card {
+    background: white;
+    border-radius: 12px;
+    padding: 28px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+}
+
+.detail-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 16px;
+}
+
+.detail-header h2 {
+    color: #2d3748;
+    font-size: 20px;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.detail-header .status-badge {
+    margin-left: auto;
+}
+
+.detail-body {
+    margin-bottom: 28px;
+}
+
+.detail-row {
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    gap: 16px;
+    padding: 16px 0;
+    border-bottom: 1px solid #edf2f7;
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    font-weight: 600;
+    color: #2d3748;
+    font-size: 14px;
+}
+
+.detail-value {
+    color: #4a5568;
+    font-size: 14px;
+}
+
+.detail-value code {
+    background: #f7fafc;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    color: #2d3748;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.status-unused {
+    background: #edf2f7;
+    color: #2d3748;
+}
+
+.status-active {
+    background: #48bb78;
+    color: white;
+}
+
+.status-used {
+    background: #e2e8f0;
+    color: #718096;
+}
+
+.lock-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.lock-badge.locked {
+    background: #fed7d7;
+    color: #c53030;
+}
+
+.lock-badge.locked .material-icons {
+    font-size: 16px;
+}
+
+.lock-badge.unlocked {
+    background: #c6f6d5;
+    color: #22543d;
+}
+
+.lock-badge.unlocked .material-icons {
+    font-size: 16px;
+}
+
+.qr-code-section {
+    background: #f7fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    margin: 24px 0;
+}
+
+.qr-code-section h3 {
+    color: #2d3748;
+    font-size: 16px;
+    margin: 0 0 16px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.qr-code-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.qr-code-image {
+    max-width: 200px;
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    padding: 8px;
+    background: white;
+}
+
+.qr-code-url {
+    color: #718096;
+    font-size: 12px;
+    word-break: break-all;
+    margin: 0;
+}
+
+.qr-code-section small {
+    color: #a0aec0;
+    font-size: 11px;
+}
+
+.detail-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.btn-primary {
+    background: #667eea;
+    color: white;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.6);
+}
+
+.btn-secondary {
+    background: #e2e8f0;
+    color: #2d3748;
+    box-shadow: none;
+}
+
+.btn-secondary:hover {
+    background: #cbd5e0;
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="detail-container">
+<div class="detail-page">
     <div class="detail-card">
         <div class="detail-header">
-            <h2>カード情報</h2>
+            <h2>
+                <span class="material-icons" style="color: #667eea; font-size: 28px;">credit_card</span>
+                カード詳細
+            </h2>
             <span class="status-badge status-{{ card.status }}">
                 {{ card.get_status_display }}
             </span>
         </div>
         
         <div class="detail-body">
-                        
-            <div class="detail-divider"></div>
-            
             <div class="detail-row">
                 <div class="detail-label">シリアル番号</div>
                 <div class="detail-value"><code>{{ card.serial_number }}</code></div>
@@ -71,7 +290,10 @@
 
             <!-- QRコード表示 -->
             <div class="qr-code-section">
-                <h3>QRコード</h3>
+                <h3>
+                    <span class="material-icons" style="color: #667eea; font-size: 20px;">qr_code_2</span>
+                    QRコード
+                </h3>
                 <div class="qr-code-container">
                     <img src="{{ qr_image }}" alt="QRコード" class="qr-code-image">
                     <p class="qr-code-url">{{ qr_url }}</p>
@@ -81,10 +303,12 @@
 
         </div>
         
-        
         <div class="detail-actions">
-            <a href="{% url 'dashboard:card_edit' card.id %}" class="btn btn-primary">編集する</a>
             <a href="{% url 'dashboard:card_list' %}" class="btn btn-secondary">戻る</a>
+            <a href="{% url 'dashboard:card_edit' card.id %}" class="btn btn-primary">
+                <span class="material-icons">edit</span>
+                <span>編集する</span>
+            </a>
         </div>
     </div>
 </div>
