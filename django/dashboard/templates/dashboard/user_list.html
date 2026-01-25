@@ -85,6 +85,8 @@
         margin-bottom: 30px;
         border-bottom: 1px solid #e2e8f0;
         padding-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 10px;
     }
 
     .page-header h2 {
@@ -126,6 +128,10 @@
         color: white;
     }
 
+    .btn-info:hover {
+        background: #3182ce;
+    }
+
     .btn-danger {
         background: #f56565;
         color: white;
@@ -137,6 +143,7 @@
 
     .btn span.material-icons {
         font-size: 18px;
+        line-height: 1;
     }
 
     .btn-sm span.material-icons {
@@ -147,13 +154,15 @@
         background: white;
         border-radius: 8px;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        overflow: hidden;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
 
     .data-table {
         width: 100%;
         border-collapse: collapse;
         font-size: 14px;
+        min-width: 600px;
     }
 
     .data-table thead {
@@ -166,6 +175,7 @@
         text-align: left;
         font-weight: 600;
         color: #2d3748;
+        white-space: nowrap;
     }
 
     .data-table td {
@@ -184,6 +194,7 @@
         border-radius: 4px;
         font-size: 12px;
         font-weight: 600;
+        white-space: nowrap;
     }
 
     .badge-danger {
@@ -203,6 +214,7 @@
     .action-buttons {
         display: flex;
         gap: 6px;
+        flex-wrap: nowrap;
     }
 
     .alert {
@@ -221,5 +233,53 @@
         color: #22543d;
         font-weight: 600;
     }
+
+    /* モバイル対応 */
+    @media (max-width: 768px) {
+        .container {
+            padding: 12px;
+        }
+
+        .page-header {
+            flex-direction: column;
+            align-items: stretch;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+        }
+
+        .page-header h2 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .data-table {
+            font-size: 12px;
+            min-width: 500px;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 8px;
+        }
+
+        .action-buttons {
+            gap: 4px;
+        }
+
+        .btn-sm {
+            padding: 4px 8px;
+            font-size: 11px;
+        }
+
+        .btn-sm span.material-icons {
+            font-size: 14px;
+        }
+    }
+</style>
 </style>
 {% endblock %}
