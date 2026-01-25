@@ -41,12 +41,17 @@ services:
       - pgdata:/var/lib/postgresql/data
 
   nginx:
-    image:  nginx:latest
+    image: nginx:latest
     container_name: microcoupon-nginx
     ports:
       - "0.0.0.0:8080:80"
+    env_file:
+      - .env
+    environment:
+      - ADMIN_PATH=${ADMIN_PATH}
+      - NGINX_ADMIN_PATH=/${ADMIN_PATH}
     volumes:
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/default.conf.template:/etc/nginx/templates/default.conf.template:ro
       - ./django/staticfiles:/app/staticfiles
       - ${BASIC_AUTH_FILE_HOST}:/etc/nginx/.htpasswd:ro
     depends_on:
