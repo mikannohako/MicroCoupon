@@ -29,6 +29,10 @@ DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
 # ドメイン名とベーsURL
 DOMAIN_NAME = os.environ.get('DOMAIN_NAME', 'localhost:8080')
 BASE_URL = os.environ.get('BASE_URL', 'http://localhost:8080')
+ADMIN_PATH = os.environ.get('ADMIN_PATH', 'admin/')
+ADMIN_BASIC_AUTH_USER = os.environ.get('ADMIN_BASIC_AUTH_USER')
+ADMIN_BASIC_AUTH_PASSWORD = os.environ.get('ADMIN_BASIC_AUTH_PASSWORD')
+ADMIN_BASIC_AUTH_REALM = os.environ.get('ADMIN_BASIC_AUTH_REALM', 'Restricted')
 
 ALLOWED_HOSTS = ["*"]
 
@@ -64,6 +68,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'config.middleware.AdminBasicAuthMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',

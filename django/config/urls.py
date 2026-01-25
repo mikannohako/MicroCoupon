@@ -19,10 +19,10 @@ from django.urls import path, include
 from django.shortcuts import redirect
 from account import views as account_views
 from django.views.generic import TemplateView
-import os
+from django.conf import settings
 from . import views as config_views
 
-ADMIN_PATH = os.environ.get('ADMIN_PATH', 'admin/')
+ADMIN_PATH = settings.ADMIN_PATH
 
 urlpatterns = [
     path(ADMIN_PATH, admin.site.urls),
