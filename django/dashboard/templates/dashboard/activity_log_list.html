@@ -1,0 +1,404 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}アクティビティログ - MicroCoupon{% endblock %}
+
+{% block page_title %}アクティビティログ{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h2>アクティビティログ</h2>
+        <p class="description">システム内のすべての操作履歴を表示します（編集・削除不可）</p>
+    </div>
+
+    <!-- フィルターセクション -->
+    <div class="filter-section">
+        <form method="get" class="filter-form-grid">
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label>アクション</label>
+                    <select name="action" class="form-control">
+                        <option value="">すべて</option>
+                        {% for action_code, action_name in action_choices %}
+                        <option value="{{ action_code }}" {% if action_filter == action_code %}selected{% endif %}>
+                            {{ action_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>ユーザー</label>
+                    <select name="user" class="form-control">
+                        <option value="">すべて</option>
+                        {% for user in all_users %}
+                        <option value="{{ user.id }}" {% if user_filter == user.id|stringformat:'s' %}selected{% endif %}>
+                            {{ user.username }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>開始日</label>
+                    <input type="date" name="date_from" value="{{ date_from }}" class="form-control">
+                </div>
+                <div class="filter-group">
+                    <label>終了日</label>
+                    <input type="date" name="date_to" value="{{ date_to }}" class="form-control">
+                </div>
+            </div>
+            <div class="filter-row">
+                <div class="filter-group" style="flex: 1;">
+                    <label>検索（説明/対象ID）</label>
+                    <input type="text" name="q" value="{{ search_query }}" placeholder="キーワードで検索" class="form-control">
+                </div>
+                <div class="filter-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <span class="material-icons">search</span>
+                        <span>検索</span>
+                    </button>
+                    <a href="{% url 'dashboard:activity_log_list' %}" class="btn btn-secondary">
+                        <span class="material-icons">clear</span>
+                        <span>クリア</span>
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- ログテーブル -->
+    {% if logs %}
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>日時</th>
+                    <th>ユーザー</th>
+                    <th>アクション</th>
+                    <th>説明</th>
+                    <th>対象</th>
+                    <th>IPアドレス</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr style="cursor: pointer;" onclick="window.location='{% url 'dashboard:activity_log_detail' log.id %}'" title="クリックして詳細を表示">
+                    <td style="white-space: nowrap; font-size: 13px;">
+                        {{ log.created_at|date:"Y/m/d H:i:s" }}
+                    </td>
+                    <td>
+                        {% if log.user %}
+                            <strong>{{ log.user.username }}</strong>
+                        {% else %}
+                            <span class="text-muted">不明</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="status-badge status-{{ log.action }}">
+                            {{ log.get_action_display }}
+                        </span>
+                    </td>
+                    <td style="font-size: 13px;">{{ log.description }}</td>
+                    <td style="font-size: 13px;">
+                        {% if log.target_model and log.target_id %}
+                            <code>{{ log.target_model }}:{{ log.target_id|truncatechars:12 }}</code>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td style="font-family: monospace; font-size: 12px;">
+                        {{ log.ip_address|default:"-" }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ページネーション -->
+    {% if logs.has_other_pages %}
+    <div class="pagination-container">
+        {% if logs.has_previous %}
+            <a href="?page=1{% if action_filter %}&action={{ action_filter }}{% endif %}{% if user_filter %}&user={{ user_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" class="page-link">
+                <span class="material-icons">first_page</span>
+            </a>
+            <a href="?page={{ logs.previous_page_number }}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if user_filter %}&user={{ user_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" class="page-link">
+                <span class="material-icons">chevron_left</span>
+            </a>
+        {% endif %}
+        
+        <span class="page-info">
+            ページ {{ logs.number }} / {{ logs.paginator.num_pages }}
+        </span>
+        
+        {% if logs.has_next %}
+            <a href="?page={{ logs.next_page_number }}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if user_filter %}&user={{ user_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" class="page-link">
+                <span class="material-icons">chevron_right</span>
+            </a>
+            <a href="?page={{ logs.paginator.num_pages }}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if user_filter %}&user={{ user_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" class="page-link">
+                <span class="material-icons">last_page</span>
+            </a>
+        {% endif %}
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="alert alert-info">
+        ログがありません。
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .page-header h2 {
+        font-size: 24px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0;
+    }
+
+    .description {
+        color: var(--text-secondary);
+        font-size: 14px;
+        margin-top: 4px;
+    }
+
+    .filter-section {
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .filter-form-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .filter-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 12px;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .filter-group label {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-secondary);
+        margin-bottom: 6px;
+    }
+
+    .form-control {
+        padding: 10px 14px;
+        border: 2px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 14px;
+        background: white;
+        color: var(--text-primary);
+        font-family: inherit;
+        transition: all 0.2s;
+    }
+
+    .form-control:hover {
+        border-color: #cbd5e0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 3px rgba(90, 103, 216, 0.1);
+    }
+
+    .filter-actions {
+        display: flex;
+        gap: 8px;
+        align-items: flex-end;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 18px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        border: none;
+        transition: all 0.2s;
+        font-family: inherit;
+    }
+
+    .btn-primary {
+        background: #667eea;
+        color: white;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(102, 126, 234, 0.6);
+    }
+
+    .btn-secondary {
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+        background: #cbd5e0;
+    }
+
+    .pagination-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 24px;
+        padding: 20px;
+    }
+
+    .page-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 40px;
+        height: 40px;
+        padding: 0 8px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        color: var(--text-primary);
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .page-link:hover {
+        background: var(--accent-light);
+        color: white;
+        border-color: var(--accent-light);
+    }
+
+    .page-link .material-icons {
+        font-size: 20px;
+    }
+
+    .page-info {
+        padding: 0 16px;
+        color: var(--text-secondary);
+        font-size: 14px;
+    }
+
+    .text-muted {
+        color: var(--text-light);
+    }
+
+    .alert {
+        padding: 20px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+    }
+
+    .alert-info {
+        background: #dbeafe;
+        border-color: #93c5fd;
+        color: #1e40af;
+    }
+
+    /* アクション別の色分け */
+    .status-badge.status-card_create,
+    .status-badge.status-card_activate {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-badge.status-card_delete {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .status-badge.status-card_edit,
+    .status-badge.status-product_edit,
+    .status-badge.status-user_edit {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .status-badge.status-transaction_create {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-badge.status-user_login {
+        background: #e0e7ff;
+        color: #3730a3;
+    }
+
+    .status-badge.status-user_logout {
+        background: #f3f4f6;
+        color: #374151;
+    }
+
+    /* レスポンシブ */
+    @media (max-width: 768px) {
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .filter-section {
+            padding: 16px;
+        }
+
+        .filter-row {
+            grid-template-columns: 1fr;
+        }
+
+        .filter-actions {
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .filter-actions .btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .pagination-container {
+            flex-wrap: wrap;
+            gap: 6px;
+            padding: 16px;
+        }
+
+        .page-link {
+            min-width: 36px;
+            height: 36px;
+        }
+    }
+</style>
+{% endblock %}
+

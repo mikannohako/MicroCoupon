@@ -1,0 +1,335 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}取引ログ詳細 - MicroCoupon{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <div class="page-header">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+            <a href="{% url 'dashboard:transaction_log_list' %}" class="btn-back">
+                <span class="material-icons">arrow_back</span>
+            </a>
+            <h1>取引ログ詳細</h1>
+        </div>
+    </div>
+    
+    <!-- 取引情報 -->
+    <div class="detail-card">
+        <h2 class="detail-title">基本情報</h2>
+        
+        <div class="detail-grid">
+            <div class="detail-item">
+                <label>取引ID</label>
+                <div class="detail-value">{{ transaction.id }}</div>
+            </div>
+            
+            <div class="detail-item">
+                <label>取引日時</label>
+                <div class="detail-value">{{ transaction.created_at|date:"Y年m月d日 H:i:s" }}</div>
+            </div>
+            
+            <div class="detail-item">
+                <label>カード</label>
+                <div class="detail-value">
+                    {% if transaction.card %}
+                    <a href="{% url 'dashboard:card_detail' transaction.card.id %}">{{ transaction.card.serial_number }}</a>
+                    {% else %}
+                    <span style="color: #a0aec0;">削除済み</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="detail-item">
+                <label>ショップ</label>
+                <div class="detail-value">{{ transaction.created_by|default:"システム" }}</div>
+            </div>
+            
+            <div class="detail-item">
+                <label>ステータス</label>
+                <div class="detail-value">
+                    <span class="status-badge status-{{ transaction.status }}">
+                        {% if transaction.status == 'completed' %}完了
+                        {% elif transaction.status == 'failed' %}失敗
+                        {% elif transaction.status == 'cancelled' %}キャンセル
+                        {% else %}{{ transaction.status }}{% endif %}
+                    </span>
+                </div>
+            </div>
+            
+            {% if transaction.error_message %}
+            <div class="detail-item full-width">
+                <label>エラーメッセージ</label>
+                <div class="detail-value error-message">{{ transaction.error_message }}</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- 取引明細 -->
+    <div class="detail-card">
+        <h2 class="detail-title">取引明細</h2>
+        
+        <div class="items-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>商品名</th>
+                        <th>単価</th>
+                        <th>数量</th>
+                        <th>小計</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in transaction.items.all %}
+                    <tr>
+                        <td>
+                            {% if item.product %}
+                            <a href="{% url 'dashboard:product_detail' item.product.id %}" class="product-link">
+                                {{ item.product_name }}
+                            </a>
+                            {% else %}
+                            {{ item.product_name }}
+                            {% endif %}
+                        </td>
+                        <td class="amount">{{ item.product_price }}pt</td>
+                        <td class="center">{{ item.quantity }}</td>
+                        <td class="amount total">{{ item.subtotal }}pt</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="total-section">
+            <div class="total-row">
+                <span class="total-label">合計金額</span>
+                <span class="total-value">{{ transaction.total_amount }}pt</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .page-header {
+        margin-bottom: 30px;
+    }
+    
+    .page-header h1 {
+        font-size: 28px;
+        font-weight: 700;
+        color: #2d3748;
+    }
+    
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        background: #e2e8f0;
+        color: #2d3748;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+    
+    .btn-back:hover {
+        background: #cbd5e0;
+    }
+    
+    .btn-back .material-icons {
+        font-size: 20px;
+    }
+    
+    .detail-card {
+        background: white;
+        border-radius: 8px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .detail-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #2d3748;
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    
+    .detail-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+    }
+    
+    .detail-item {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .detail-item.full-width {
+        grid-column: 1 / -1;
+    }
+    
+    .detail-item label {
+        font-weight: 600;
+        color: #718096;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+    }
+    
+    .detail-value {
+        font-size: 15px;
+        color: #2d3748;
+        font-weight: 500;
+    }
+    
+    .detail-value a {
+        color: #4299e1;
+        text-decoration: none;
+        font-weight: 600;
+    }
+    
+    .detail-value a:hover {
+        text-decoration: underline;
+    }
+    
+    .error-message {
+        background: #fff5f5;
+        border-left: 4px solid #f56565;
+        padding: 12px;
+        border-radius: 6px;
+        color: #742a2a;
+        font-family: 'Courier New', monospace;
+        font-size: 13px;
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        width: fit-content;
+    }
+    
+    .status-completed {
+        background: #c6f6d5;
+        color: #22543d;
+    }
+    
+    .status-failed {
+        background: #fed7d7;
+        color: #742a2a;
+    }
+    
+    .status-cancelled {
+        background: #feebc8;
+        color: #7c2d12;
+    }
+    
+    .items-table {
+        overflow-x: auto;
+        margin-bottom: 24px;
+    }
+    
+    .items-table table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .items-table thead {
+        background: #f7fafc;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    
+    .items-table th {
+        padding: 12px;
+        text-align: left;
+        font-weight: 700;
+        color: #2d3748;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .items-table td {
+        padding: 12px;
+        border-bottom: 1px solid #e2e8f0;
+        color: #2d3748;
+    }
+    
+    .items-table tbody tr:hover {
+        background: #f7fafc;
+    }
+    
+    .items-table .amount {
+        text-align: right;
+        font-weight: 600;
+        color: #e53e3e;
+    }
+    
+    .items-table .amount.total {
+        font-weight: 700;
+        font-size: 15px;
+    }
+    
+    .items-table .center {
+        text-align: center;
+    }
+    
+    .product-link {
+        color: #4299e1;
+        text-decoration: none;
+        font-weight: 600;
+    }
+    
+    .product-link:hover {
+        text-decoration: underline;
+    }
+    
+    .total-section {
+        padding: 20px;
+        background: #f7fafc;
+        border-radius: 8px;
+    }
+    
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 18px;
+        font-weight: 700;
+        color: #2d3748;
+    }
+    
+    .total-label {
+        color: #2d3748;
+    }
+    
+    .total-value {
+        color: #e53e3e;
+        font-size: 24px;
+    }
+    
+    @media (max-width: 768px) {
+        .detail-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .items-table {
+            font-size: 13px;
+        }
+        
+        .items-table th,
+        .items-table td {
+            padding: 8px;
+        }
+    }
+</style>
+{% endblock %}

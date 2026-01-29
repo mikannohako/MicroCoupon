@@ -82,7 +82,7 @@
                             </button>
                         </div>
                         {% endif %}
-                        <div class="product-name">{{ product.name }}</div>
+                        <div class="product-name" title="{{ product.name }}">{{ product.name }}</div>
                         <div class="product-price">{{ product.price }} pt</div>
                     </div>
                     {% endfor %}
@@ -173,26 +173,6 @@
     <!-- 商品追加モーダル -->
     <div class="modal" id="productModal">
         <div class="modal-content">
-    
-    <!-- 購入完了ポップアップ -->
-    <div class="success-popup-overlay" id="successOverlay"></div>
-    <div class="success-popup status-success" id="successPopup">
-        <div class="success-icon status-success">
-            <i class="material-icons">check_circle</i>
-        </div>
-        <h2 class="success-title status-success">決済完了！</h2>
-        <div class="success-details">
-            <div class="success-detail-row">
-                <span class="success-detail-label">購入金額</span>
-                <span class="success-detail-value highlight" id="popupTotalAmount">0pt</span>
-            </div>
-            <div class="success-detail-row">
-                <span class="success-detail-label">カード残高</span>
-                <span class="success-detail-value" id="popupRemainingBalance">0pt</span>
-            </div>
-        </div>
-        <button class="success-close-btn status-success" onclick="closeSuccessPopup()">閉じる</button>
-    </div>
             <div class="scanner-header">
                 <h2 id="productModalTitle">商品を追加</h2>
             </div>
@@ -227,6 +207,26 @@
                 <button class="btn-modal" style="background: #5a67d8; color: white;" onclick="submitProduct()">保存</button>
             </div>
         </div>
+    </div>
+    
+    <!-- 購入完了ポップアップ -->
+    <div class="success-popup-overlay" id="successOverlay"></div>
+    <div class="success-popup status-success" id="successPopup">
+        <div class="success-icon status-success">
+            <i class="material-icons">check_circle</i>
+        </div>
+        <h2 class="success-title status-success">決済完了！</h2>
+        <div class="success-details">
+            <div class="success-detail-row">
+                <span class="success-detail-label">購入金額</span>
+                <span class="success-detail-value highlight" id="popupTotalAmount">0pt</span>
+            </div>
+            <div class="success-detail-row">
+                <span class="success-detail-label">カード残高</span>
+                <span class="success-detail-value" id="popupRemainingBalance">0pt</span>
+            </div>
+        </div>
+        <button class="success-close-btn status-success" onclick="closeSuccessPopup()">閉じる</button>
     </div>
     
     <!-- エラーポップアップ -->
@@ -518,11 +518,21 @@
         }
 
         function showSuccessPopup(totalAmount, remainingBalance) {
+            console.log('showSuccessPopup called:', totalAmount, remainingBalance);
+            const overlay = document.getElementById('successOverlay');
+            const popup = document.getElementById('successPopup');
+            console.log('Overlay element:', overlay);
+            console.log('Popup element:', popup);
+            
             document.getElementById('popupTotalAmount').textContent = `${totalAmount}pt`;
             document.getElementById('popupRemainingBalance').textContent = `${remainingBalance}pt`;
-            document.getElementById('successOverlay').classList.add('show');
+            
+            overlay.classList.add('show');
+            console.log('Overlay classes after add:', overlay.className);
+            
             setTimeout(() => {
-                document.getElementById('successPopup').classList.add('show');
+                popup.classList.add('show');
+                console.log('Popup classes after add:', popup.className);
             }, 100);
         }
 

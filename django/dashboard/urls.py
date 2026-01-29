@@ -19,6 +19,7 @@ urlpatterns = [
     path('cards/activate/', views.card_activate, name='card_activate'),
     path('cards/<uuid:card_id>/', views.card_detail, name='card_detail'),
     path('cards/<uuid:card_id>/edit/', views.card_edit, name='card_edit'),
+    path('cards/<uuid:card_id>/delete/', views.card_delete, name='card_delete'),
     
     # 商品管理
     path('products/', views.product_list, name='product_list'),
@@ -32,4 +33,12 @@ urlpatterns = [
     path('users/create/', views.user_create, name='user_create'),
     path('users/<int:user_id>/edit/', views.user_edit, name='user_edit'),
     path('users/<int:user_id>/delete/', views.user_delete, name='user_delete'),
+    
+    # アクティビティログ
+    path('logs/', views.activity_log_list, name='activity_log_list'),
+    path('logs/<uuid:log_id>/', views.activity_log_detail, name='activity_log_detail'),
+    
+    # 取引ログ
+    path('transactions/', views.transaction_log_list, name='transaction_log_list'),
+    path('transactions/<int:transaction_id>/', views.transaction_log_detail, name='transaction_log_detail'),
 ]

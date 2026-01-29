@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.utils import timezone
 from django.contrib import messages
-from .models import Card
+from .models import Card, ActivityLog
 
 
 @admin.action(description='選択されたカードを有効化')
@@ -96,3 +96,34 @@ class CardAdmin(admin.ModelAdmin):
                 elif obj.status == 'used' and not obj.used_at:
                     obj.used_at = timezone.now()
         super().save_model(request, obj, form, change)
+
+
+@admin.register(ActivityLog)
+class ActivityLogAdmin(admin.ModelAdmin):
+    """アクティビティログの管理画面（読み取り専用）"""
+    list_display = ('created_at', 'user', 'action', 'description', 'target_info', 'ip_address')
+    list_filter = ('action', 'created_at', 'user')
+    search_fields = ('description', 'target_id', 'user__username', 'ip_address')
+    readonly_fields = ('id', 'user', 'action', 'description', 'target_model', 'target_id', 
+                      'ip_address', 'user_agent', 'extra_data', 'created_at')
+    date_hierarchy = 'created_at'
+    ordering = ('-created_at',)
+    
+    def target_info(self, obj):
+        """対象情報を表示"""
+        if obj.target_model and obj.target_id:
+            return f"{obj.target_model}:{obj.target_id[:20]}"
+        return "-"
+    target_info.short_description = '対象'
+    
+    def has_add_permission(self, request):
+        """追加権限なし"""
+        return False
+    
+    def has_change_permission(self, request, obj=None):
+        """変更権限なし"""
+        return False
+    
+    def has_delete_permission(self, request, obj=None):
+        """削除権限なし"""
+        return False

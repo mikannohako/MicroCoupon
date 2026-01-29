@@ -1,0 +1,400 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}取引ログ - MicroCoupon{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <div class="page-header">
+        <h1>取引ログ</h1>
+        <p>すべての取引ログを表示</p>
+    </div>
+    
+    <!-- フィルターパネル -->
+    <div class="filter-panel">
+        <form method="get" class="filter-form">
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label for="q">検索（シリアル番号・ショップ名）</label>
+                    <input type="text" id="q" name="q" value="{{ search_query }}" placeholder="シリアル番号またはショップ名を入力">
+                </div>
+                
+                <div class="filter-group">
+                    <label for="status">ステータス</label>
+                    <select id="status" name="status">
+                        <option value="">すべて</option>
+                        {% for value, label in status_choices %}
+                        <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="date_from">開始日</label>
+                    <input type="date" id="date_from" name="date_from" value="{{ date_from }}">
+                </div>
+                
+                <div class="filter-group">
+                    <label for="date_to">終了日</label>
+                    <input type="date" id="date_to" name="date_to" value="{{ date_to }}">
+                </div>
+            </div>
+            
+            <div class="filter-actions">
+                <button type="submit" class="btn btn-primary">検索</button>
+                <a href="{% url 'dashboard:transaction_log_list' %}" class="btn btn-secondary">リセット</a>
+            </div>
+        </form>
+    </div>
+    
+    <!-- 取引ログテーブル -->
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>取引日時</th>
+                    <th>シリアル番号</th>
+                    <th>ショップ</th>
+                    <th>金額</th>
+                    <th>ステータス</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in transactions %}
+                <tr class="transaction-row" onclick="location.href='{% url 'dashboard:transaction_log_detail' transaction.id %}'" style="cursor: pointer;">
+                    <td class="date-cell">{{ transaction.created_at|date:"Y/m/d H:i" }}</td>
+                    <td class="serial-cell">{{ transaction.card.serial_number|default:"削除済み" }}</td>
+                    <td class="shop-cell">{{ transaction.created_by|default:"システム" }}</td>
+                    <td class="amount-cell">{{ transaction.total_amount }}pt</td>
+                    <td class="status-cell">
+                        <span class="status-badge status-{{ transaction.status }}">
+                            {% if transaction.status == 'completed' %}完了
+                            {% elif transaction.status == 'failed' %}失敗
+                            {% elif transaction.status == 'cancelled' %}キャンセル
+                            {% else %}{{ transaction.status }}{% endif %}
+                        </span>
+                    </td>
+                    <td class="action-cell" onclick="event.stopPropagation();">
+                        <a href="{% url 'dashboard:transaction_log_detail' transaction.id %}" class="btn-icon" title="詳細">
+                            <span class="material-icons">visibility</span>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="empty-message">取引ログがありません</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- ページネーション -->
+    {% if transactions.has_other_pages %}
+    <div class="pagination">
+        {% if transactions.has_previous %}
+        <a href="?page=1{% if search_query %}&q={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="page-link">«</a>
+        <a href="?page={{ transactions.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="page-link">前へ</a>
+        {% endif %}
+        
+        {% for num in transactions.paginator.page_range %}
+        {% if transactions.number == num %}
+        <span class="page-link active">{{ num }}</span>
+        {% elif num > transactions.number|add:'-3' and num < transactions.number|add:'3' %}
+        <a href="?page={{ num }}{% if search_query %}&q={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="page-link">{{ num }}</a>
+        {% endif %}
+        {% endfor %}
+        
+        {% if transactions.has_next %}
+        <a href="?page={{ transactions.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="page-link">次へ</a>
+        <a href="?page={{ transactions.paginator.num_pages }}{% if search_query %}&q={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="page-link">»</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .page-header {
+        margin-bottom: 30px;
+    }
+    
+    .page-header h1 {
+        font-size: 28px;
+        font-weight: 700;
+        color: #2d3748;
+        margin-bottom: 8px;
+    }
+    
+    .page-header p {
+        color: #718096;
+        font-size: 14px;
+    }
+    
+    .filter-panel {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .filter-form {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .filter-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+        gap: 15px;
+    }
+    
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .filter-group label {
+        font-weight: 600;
+        color: #2d3748;
+        font-size: 13px;
+    }
+    
+    .filter-group input,
+    .filter-group select {
+        padding: 10px;
+        border: 2px solid #e2e8f0;
+        border-radius: 6px;
+        font-size: 14px;
+        font-family: inherit;
+    }
+    
+    .filter-group input:focus,
+    .filter-group select:focus {
+        outline: none;
+        border-color: #4299e1;
+        background: #f0f9ff;
+    }
+    
+    .filter-actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .btn-primary {
+        background: #4299e1;
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: #3182ce;
+    }
+    
+    .btn-secondary {
+        background: #e2e8f0;
+        color: #2d3748;
+    }
+    
+    .btn-secondary:hover {
+        background: #cbd5e0;
+    }
+    
+    .table-container {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 30px;
+    }
+    
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .table thead {
+        background: #f7fafc;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    
+    .table th {
+        padding: 15px;
+        text-align: left;
+        font-weight: 700;
+        color: #2d3748;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .table td {
+        padding: 15px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .transaction-row:hover {
+        background: #f7fafc;
+    }
+    
+    .date-cell {
+        font-weight: 600;
+        color: #2d3748;
+    }
+    
+    .serial-cell {
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+        color: #4299e1;
+    }
+    
+    .shop-cell {
+        color: #2d3748;
+        font-weight: 500;
+    }
+    
+    .amount-cell {
+        font-weight: 700;
+        color: #e53e3e;
+        font-size: 15px;
+    }
+    
+    .status-cell {
+        text-align: center;
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    
+    .status-completed {
+        background: #c6f6d5;
+        color: #22543d;
+    }
+    
+    .status-failed {
+        background: #fed7d7;
+        color: #742a2a;
+    }
+    
+    .status-cancelled {
+        background: #feebc8;
+        color: #7c2d12;
+    }
+    
+    .action-cell {
+        text-align: center;
+    }
+    
+    .btn-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 6px;
+        background: #e2e8f0;
+        color: #4299e1;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+    
+    .btn-icon:hover {
+        background: #4299e1;
+        color: white;
+    }
+    
+    .btn-icon .material-icons {
+        font-size: 18px;
+    }
+    
+    .empty-message {
+        text-align: center;
+        padding: 40px 15px;
+        color: #a0aec0;
+        font-weight: 500;
+    }
+    
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .page-link {
+        padding: 8px 12px;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        color: #4299e1;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+    
+    .page-link:hover {
+        background: #e2e8f0;
+    }
+    
+    .page-link.active {
+        background: #4299e1;
+        color: white;
+        border-color: #4299e1;
+    }
+    
+    @media (max-width: 1024px) {
+        .filter-row {
+            grid-template-columns: 1fr 1fr;
+        }
+        
+        .table {
+            font-size: 13px;
+        }
+        
+        .table th,
+        .table td {
+            padding: 10px;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .filter-row {
+            grid-template-columns: 1fr;
+        }
+        
+        .filter-actions {
+            flex-direction: column;
+        }
+        
+        .table {
+            font-size: 12px;
+        }
+        
+        .table th,
+        .table td {
+            padding: 8px;
+        }
+        
+        .transaction-row {
+            cursor: default;
+        }
+    }
+</style>
+{% endblock %}

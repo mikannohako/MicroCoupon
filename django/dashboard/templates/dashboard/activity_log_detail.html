@@ -1,0 +1,250 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}アクティビティログ詳細 - MicroCoupon{% endblock %}
+
+{% block extra_css %}
+<style>
+    .detail-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    
+    .detail-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    
+    .detail-header h1 {
+        font-size: 24px;
+        font-weight: 600;
+        margin: 0;
+        color: #1a202c;
+    }
+    
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        background: #f7fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        color: #4a5568;
+        text-decoration: none;
+        font-size: 14px;
+        transition: all 0.2s;
+    }
+    
+    .back-btn:hover {
+        background: #edf2f7;
+        border-color: #cbd5e0;
+    }
+    
+    .info-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        padding: 24px;
+        margin-bottom: 20px;
+    }
+    
+    .info-row {
+        display: flex;
+        padding: 16px 0;
+        border-bottom: 1px solid #f7fafc;
+    }
+    
+    .info-row:last-child {
+        border-bottom: none;
+    }
+    
+    .info-label {
+        width: 200px;
+        font-weight: 600;
+        color: #4a5568;
+        font-size: 14px;
+        flex-shrink: 0;
+    }
+    
+    .info-value {
+        flex: 1;
+        color: #1a202c;
+        word-break: break-all;
+    }
+    
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+    
+    .status-card_create,
+    .status-card_edit,
+    .status-card_delete,
+    .status-card_bulk_create,
+    .status-card_bulk_delete {
+        background: #e6f7ff;
+        color: #0066cc;
+    }
+    
+    .status-user_login,
+    .status-user_logout {
+        background: #f0f5ff;
+        color: #5a67d8;
+    }
+    
+    .status-card_activate {
+        background: #f0fff4;
+        color: #22543d;
+    }
+    
+    .json-viewer {
+        background: #f7fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        padding: 16px;
+        font-family: 'Courier New', monospace;
+        font-size: 13px;
+        overflow-x: auto;
+        white-space: pre-wrap;
+        word-break: break-all;
+    }
+    
+    .empty-state {
+        text-align: center;
+        color: #a0aec0;
+        padding: 20px;
+        font-size: 14px;
+    }
+    
+    @media (max-width: 768px) {
+        .info-row {
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .info-label {
+            width: 100%;
+        }
+        
+        .detail-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="detail-container">
+    <div class="detail-header">
+        <a href="{% url 'dashboard:activity_log_list' %}" class="back-btn">
+            <span class="material-icons" style="font-size: 18px;">arrow_back</span>
+            <span>ログ一覧に戻る</span>
+        </a>
+        <h1>アクティビティログ詳細</h1>
+    </div>
+    
+    <div class="info-card">
+        <div class="info-row">
+            <div class="info-label">日時</div>
+            <div class="info-value">
+                <strong>{{ log.created_at|date:"Y年m月d日 H:i:s" }}</strong>
+            </div>
+        </div>
+        
+        <div class="info-row">
+            <div class="info-label">ユーザー</div>
+            <div class="info-value">
+                {% if log.user %}
+                    <strong>{{ log.user.username }}</strong>
+                    {% if log.user.first_name or log.user.last_name %}
+                        <span style="color: #718096; margin-left: 8px;">
+                            ({{ log.user.last_name }} {{ log.user.first_name }})
+                        </span>
+                    {% endif %}
+                {% else %}
+                    <span style="color: #a0aec0;">不明</span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="info-row">
+            <div class="info-label">アクション</div>
+            <div class="info-value">
+                <span class="status-badge status-{{ log.action }}">
+                    {{ log.get_action_display }}
+                </span>
+            </div>
+        </div>
+        
+        <div class="info-row">
+            <div class="info-label">説明</div>
+            <div class="info-value">{{ log.description }}</div>
+        </div>
+        
+        {% if log.target_model or log.target_id %}
+        <div class="info-row">
+            <div class="info-label">対象</div>
+            <div class="info-value">
+                {% if log.target_model %}
+                    <code style="background: #f7fafc; padding: 4px 8px; border-radius: 4px; font-size: 13px;">
+                        {{ log.target_model }}
+                    </code>
+                {% endif %}
+                {% if log.target_id %}
+                    <code style="background: #f7fafc; padding: 4px 8px; border-radius: 4px; font-size: 13px; margin-left: 8px;">
+                        {{ log.target_id }}
+                    </code>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="info-row">
+            <div class="info-label">IPアドレス</div>
+            <div class="info-value">
+                <code style="font-family: monospace; background: #f7fafc; padding: 4px 8px; border-radius: 4px;">
+                    {{ log.ip_address|default:"記録なし" }}
+                </code>
+            </div>
+        </div>
+        
+        {% if log.user_agent %}
+        <div class="info-row">
+            <div class="info-label">ユーザーエージェント</div>
+            <div class="info-value" style="font-size: 12px; color: #718096;">
+                {{ log.user_agent }}
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if log.extra_data %}
+        <div class="info-row">
+            <div class="info-label">追加データ</div>
+            <div class="info-value">
+                <div class="json-viewer">{{ log.extra_data|safe }}</div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="info-row">
+            <div class="info-label">ログID</div>
+            <div class="info-value">
+                <code style="font-family: monospace; font-size: 12px; color: #718096;">
+                    {{ log.id }}
+                </code>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

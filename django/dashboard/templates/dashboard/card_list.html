@@ -254,6 +254,15 @@ code {
     transform: translateY(-1px);
 }
 
+.btn-icon-danger {
+    color: #f56565;
+}
+
+.btn-icon-danger:hover {
+    background: #fee2e2;
+    border-color: #fc8181;
+}
+
 .btn-icon .material-icons {
     font-size: 18px;
 }
@@ -411,6 +420,9 @@ code {
                             </a>
                             <a href="{% url 'dashboard:card_edit' card.id %}" class="btn-icon" title="編集">
                                 <span class="material-icons">edit</span>
+                            </a>
+                            <a href="{% url 'dashboard:card_delete' card.id %}" class="btn-icon btn-icon-danger" title="削除">
+                                <span class="material-icons">delete</span>
                             </a>
                         </div>
                     </td>

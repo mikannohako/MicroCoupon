@@ -3,6 +3,7 @@ from django.contrib.auth import authenticate, login as auth_login, logout as aut
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
+from microcoupon.utils import log_activity
 
 
 def login_view(request):
@@ -29,6 +30,14 @@ def login_view(request):
         if user is not None:
             auth_login(request, user)
             
+            # ログイン記録
+            log_activity(
+                user=user,
+                action='user_login',
+                description=f'{user.username} がログインしました',
+                request=request
+            )
+            
             # ユーザータイプによって遷移先を変更
             if user.is_admin():
                 return redirect('dashboard:dashboard')
@@ -43,9 +52,22 @@ def login_view(request):
 @login_required
 def logout_view(request):
     """ログアウト"""
+    # ログアウト前にユーザー情報を保存
+    user = request.user
+    username = user.username
+    
     # メッセージをクリアしてからログアウト
     storage = messages.get_messages(request)
     storage.used = True
+    
+    # ログアウト記録
+    log_activity(
+        user=user,
+        action='user_logout',
+        description=f'{username} がログアウトしました',
+        request=request
+    )
+    
     # ログアウト処理（セッション全体をクリア）
     auth_logout(request)
     return redirect('account:login')

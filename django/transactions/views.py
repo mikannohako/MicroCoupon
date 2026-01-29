@@ -8,6 +8,7 @@ from django.utils import timezone
 from django.contrib import messages
 from .models import Transaction, TransactionItem
 from microcoupon.models import Card
+from microcoupon.utils import log_activity
 from products.models import Product
 from account.models import Room
 import json
@@ -150,6 +151,16 @@ def process_payment(request):
                 # 決済完了後、5秒後にロックを解除
                 unlock_card_after_delay(card.id, delay=5)
                 
+                # ログ記録
+                log_activity(
+                    user=request.user,
+                    action='transaction_complete',
+                    description=f'決済完了: {total_amount}pt (カード: {card.serial_number})',
+                    target_model='Transaction',
+                    target_id=transaction.id,
+                    request=request
+                )
+                
                 return JsonResponse({
                     'success': True,
                     'transaction_id': transaction.id,
@@ -252,6 +263,17 @@ def register_product_create(request):
                 display_order=int(display_order),
                 is_active=True
             )
+            
+            # ログ記録
+            log_activity(
+                user=request.user,
+                action='product_create',
+                description=f'レジから商品作成: {product.name} ({product.price}pt)',
+                target_model='Product',
+                target_id=product.id,
+                request=request
+            )
+            
             messages.success(request, f'商品「{product.name}」を追加しました')
             return redirect('transactions:register')
         except ValueError:
@@ -280,12 +302,23 @@ def register_product_edit(request, product_id):
         is_active = request.POST.get('is_active') == 'on'
         
         try:
+            old_name = product.name
             product.name = name
             product.price = int(price)
             product.description = description
             product.display_order = int(display_order)
             product.is_active = is_active
             product.save()
+            
+            # ログ記録
+            log_activity(
+                user=request.user,
+                action='product_edit',
+                description=f'レジから商品編集: {product.name} ({product.price}pt)',
+                target_model='Product',
+                target_id=product.id,
+                request=request
+            )
             
             messages.success(request, f'商品「{product.name}」を更新しました')
             return redirect('transactions:register')
@@ -297,6 +330,7 @@ def register_product_edit(request, product_id):
     return redirect('transactions:register')
 
 
+@require_POST
 @login_required
 def register_product_delete(request, product_id):
     """レジページから商品を削除（店員用）"""
@@ -307,10 +341,20 @@ def register_product_delete(request, product_id):
         messages.error(request, '他の教室の商品は削除できません')
         return redirect('transactions:register')
     
-    if request.method == 'POST':
-        product_name = product.name
-        product.delete()
-        messages.success(request, f'商品「{product_name}」を削除しました')
+    product_name = product.name
+    product_id_str = str(product.id)
+    product.delete()
     
+    # ログ記録
+    log_activity(
+        user=request.user,
+        action='product_delete',
+        description=f'レジから商品削除: {product_name}',
+        target_model='Product',
+        target_id=product_id_str,
+        request=request
+    )
+    
+    messages.success(request, f'商品「{product_name}」を削除しました')
     return redirect('transactions:register')
 

@@ -1,9 +1,12 @@
 ﻿from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from django.conf import settings
 from django.http import HttpResponse
-from microcoupon.models import Card
+from django.core.paginator import Paginator
+from django.utils import timezone
+from microcoupon.models import Card, ActivityLog
+from microcoupon.utils import log_activity
 from products.models import Product
 from account.models import Room, User
 from account.decorators import admin_required
@@ -19,11 +22,14 @@ from reportlab.lib.units import mm, inch
 
 @admin_required
 def dashboard(request):
-    total_cards = Card.objects.count()
-    unused_cards = Card.objects.filter(status='unused').count()
-    active_cards = Card.objects.filter(status='active').count()
-    used_cards = Card.objects.filter(status='used').count()
-    total_balance = Card.objects.filter(status='active').aggregate(Sum('balance'))['balance__sum'] or 0
+    # 削除済み以外のカードを対象
+    active_cards_qs = Card.objects.exclude(status='deleted')
+    
+    total_cards = active_cards_qs.count()
+    unused_cards = active_cards_qs.filter(status='unused').count()
+    active_cards = active_cards_qs.filter(status='active').count()
+    used_cards = active_cards_qs.filter(status='used').count()
+    total_balance = active_cards_qs.filter(status='active').aggregate(Sum('balance'))['balance__sum'] or 0
     total_sales = Transaction.objects.filter(status='completed').aggregate(Sum('total_amount'))['total_amount__sum'] or 0
     total_products = Product.objects.count()
     active_products = Product.objects.filter(is_active=True).count()
@@ -43,7 +49,8 @@ def dashboard(request):
 @admin_required
 def card_list(request):
     status_filter = request.GET.get('status', '')
-    cards = Card.objects.all()
+    # 削除済みのカードは非表示
+    cards = Card.objects.exclude(status='deleted')
     if status_filter:
         cards = cards.filter(status=status_filter)
     cards = cards.order_by('-created_at')
@@ -72,11 +79,17 @@ def card_create(request):
         balance = request.POST.get('balance', 0)
         try:
             card = Card.objects.create(balance=int(balance))
+            print(f"DEBUG: card_create - Attempting to log activity for card {card.id}")
+            log_activity(request.user, 'card_create', 
+                        f'カード {card.serial_number} を作成（残高: {balance}pt）',
+                        'Card', card.id, request, {'balance': int(balance)})
+            print(f"DEBUG: card_create - Activity logged successfully")
             messages.success(request, 'カードを作成しました')
             return redirect('dashboard:card_detail', card_id=card.id)
         except ValueError:
             messages.error(request, 'エラー: 残高に無効な値が入力されています')
         except Exception as e:
+            print(f"DEBUG: card_create - Exception: {e}")
             messages.error(request, f'カードの作成に失敗しました: {str(e)}')
     return render(request, 'dashboard/card_create.html')
 
@@ -96,6 +109,9 @@ def card_bulk_create(request):
             import uuid
             cards = [Card(balance=balance_int, serial_number=str(uuid.uuid4())) for _ in range(count_int)]
             created_cards = Card.objects.bulk_create(cards)
+            log_activity(request.user, 'card_create', 
+                        f'{count_int}枚のカードを一括作成（残高: {balance_int}pt）',
+                        'Card', '', request, {'count': count_int, 'balance': balance_int})
             messages.success(request, f'{count_int}枚のカードを一括作成しました（初期残高: {balance_int}pt）。')
             
             # PDF出力が指定された場合
@@ -122,8 +138,17 @@ def card_bulk_delete(request):
             if deleted == 0:
                 messages.info(request, '削除対象のカードがありません。')
                 return redirect('dashboard:card_list')
-            qs.delete()
-            messages.success(request, f'{deleted}枚のカードを削除しました（ステータス: {delete_status}）。')
+            
+            # 論理削除（ステータスを'deleted'に変更）
+            for card in qs:
+                card.status = 'deleted'
+                card.save()
+                log_activity(request.user, 'card_delete', 
+                           f'カード {card.serial_number} を削除済みに変更',
+                           'Card', card.id, request,
+                           {'old_status': delete_status, 'balance': card.balance})
+            
+            messages.success(request, f'{deleted}枚のカードを削除済みに変更しました（旧ステータス: {delete_status}）。')
         except ValueError:
             messages.error(request, '削除枚数は数値で入力してください。')
         except Exception as e:
@@ -140,10 +165,7 @@ def card_edit(request, card_id):
         is_locked = request.POST.get('is_locked') == 'on'
         try:
             new_balance = int(balance)
-            # 残高の手動追加を禁止（減少のみ許可）
-            if new_balance > card.balance:
-                messages.error(request, '残高を増やすことはできません。減少のみ可能です。')
-                return redirect('dashboard:card_edit', card_id=card.id)
+            old_balance = card.balance
             
             card.balance = new_balance
             card.status = status
@@ -154,6 +176,10 @@ def card_edit(request, card_id):
                 card.status = 'used'
             
             card.save()
+            log_activity(request.user, 'card_edit', 
+                        f'カード {card.serial_number} を編集（残高: {old_balance}→{new_balance}pt, ステータス: {status}）',
+                        'Card', card.id, request,
+                        {'old_balance': old_balance, 'new_balance': new_balance, 'status': status})
             messages.success(request, 'カード情報を更新しました')
             return redirect('dashboard:card_detail', card_id=card.id)
         except Exception as e:
@@ -167,6 +193,30 @@ def card_edit(request, card_id):
     img.save(buffer, format='PNG')
     img_base64 = base64.b64encode(buffer.getvalue()).decode()
     return render(request, 'dashboard/card_edit.html', {'card': card, 'qr_image': f'data:image/png;base64,{img_base64}', 'qr_url': url})
+
+
+@admin_required
+def card_delete(request, card_id):
+    """カード削除（論理削除）"""
+    card = get_object_or_404(Card, id=card_id)
+    
+    if request.method == 'POST':
+        serial_number = card.serial_number
+        old_status = card.status
+        
+        # ステータスを削除済みに変更
+        card.status = 'deleted'
+        card.save()
+        
+        log_activity(request.user, 'card_delete',
+                    f'カード {serial_number} を削除済みに変更（旧ステータス: {old_status}）',
+                    'Card', card.id, request,
+                    {'old_status': old_status, 'balance': card.balance})
+        
+        messages.success(request, 'カードを削除しました')
+        return redirect('dashboard:card_list')
+    
+    return render(request, 'dashboard/card_delete_confirm.html', {'card': card})
 
 
 @admin_required
@@ -201,6 +251,17 @@ def product_create(request):
         try:
             room = get_object_or_404(Room, id=room_id)
             product = Product.objects.create(room=room, name=name, price=int(price), description=description, display_order=int(display_order), is_active=True)
+            
+            # ログ記録
+            log_activity(
+                user=request.user,
+                action='product_create',
+                description=f'商品作成: {product.name} ({product.price}pt)',
+                target_model='Product',
+                target_id=product.id,
+                request=request
+            )
+            
             messages.success(request, '商品を作成しました')
             return redirect('dashboard:product_list')
         except Exception as e:
@@ -228,6 +289,17 @@ def product_edit(request, product_id):
             product.display_order = int(display_order)
             product.is_active = is_active
             product.save()
+            
+            # ログ記録
+            log_activity(
+                user=request.user,
+                action='product_edit',
+                description=f'商品編集: {product.name} ({product.price}pt)',
+                target_model='Product',
+                target_id=product.id,
+                request=request
+            )
+            
             messages.success(request, '商品を更新しました')
             return redirect('dashboard:product_list')
         except Exception as e:
@@ -241,7 +313,19 @@ def product_delete(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     if request.method == 'POST':
         product_name = product.name
+        product_id_str = str(product.id)
         product.delete()
+        
+        # ログ記録
+        log_activity(
+            user=request.user,
+            action='product_delete',
+            description=f'商品削除: {product_name}',
+            target_model='Product',
+            target_id=product_id_str,
+            request=request
+        )
+        
         messages.success(request, '商品を削除しました')
         return redirect('dashboard:product_list')
     return render(request, 'dashboard/product_delete_confirm.html', {'product': product})
@@ -257,12 +341,19 @@ def card_activate(request):
                 card = Card.objects.get(serial_number=serial_number)
                 if card.status == 'unused':
                     card.status = 'active'
+                    card.activated_at = timezone.now()
                     card.save()
+                    log_activity(request.user, 'card_activate', 
+                               f'カード {card.serial_number} を有効化',
+                               'Card', card.id, request,
+                               {'balance': card.balance})
                     result = {'success': True, 'message': 'カードを有効化しました', 'card': card}
                 elif card.status == 'active':
                     result = {'success': False, 'message': 'このカードは既に有効化されています', 'card': card}
                 elif card.status == 'used':
                     result = {'success': False, 'message': 'このカードは使用済みです', 'card': card}
+                elif card.status == 'deleted':
+                    result = {'success': False, 'message': 'このカードは削除済みです', 'card': card}
             except Card.DoesNotExist:
                 result = {'success': False, 'message': 'カードが見つかりません'}
         else:
@@ -591,8 +682,123 @@ def user_delete(request, user_id):
     if request.method == 'POST':
         username = user.username
         user.delete()
+        log_activity(request.user, 'user_delete', f'ユーザー「{username}」を削除', 
+                    'User', user.id, request)
         messages.success(request, f'ユーザー「{username}」を削除しました')
         return redirect('dashboard:user_list')
     
     return render(request, 'dashboard/user_delete_confirm.html', {'user': user})
 
+
+@admin_required
+def activity_log_list(request):
+    """アクティビティログ一覧"""
+    logs = ActivityLog.objects.select_related('user').all()
+    
+    # フィルター
+    action_filter = request.GET.get('action', '')
+    user_filter = request.GET.get('user', '')
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+    search_query = request.GET.get('q', '')
+    
+    if action_filter:
+        logs = logs.filter(action=action_filter)
+    if user_filter:
+        logs = logs.filter(user_id=user_filter)
+    if date_from:
+        logs = logs.filter(created_at__gte=date_from)
+    if date_to:
+        logs = logs.filter(created_at__lte=date_to + ' 23:59:59')
+    if search_query:
+        logs = logs.filter(
+            Q(description__icontains=search_query) |
+            Q(target_id__icontains=search_query)
+        )
+    
+    # ページネーション
+    paginator = Paginator(logs, 50)  # 50件ごと
+    page_number = request.GET.get('page')
+    logs_page = paginator.get_page(page_number)
+    
+    # フィルター用データ
+    all_users = User.objects.filter(is_active=True).order_by('username')
+    action_choices = ActivityLog.ACTION_CHOICES
+    
+    context = {
+        'logs': logs_page,
+        'all_users': all_users,
+        'action_choices': action_choices,
+        'action_filter': action_filter,
+        'user_filter': user_filter,
+        'date_from': date_from,
+        'date_to': date_to,
+        'search_query': search_query,
+    }
+    return render(request, 'dashboard/activity_log_list.html', context)
+
+
+@admin_required
+def activity_log_detail(request, log_id):
+    """アクティビティログ詳細"""
+    log = get_object_or_404(ActivityLog.objects.select_related('user'), id=log_id)
+    context = {
+        'log': log,
+    }
+    return render(request, 'dashboard/activity_log_detail.html', context)
+
+
+@admin_required
+def transaction_log_list(request):
+    """取引ログ一覧"""
+    transactions = Transaction.objects.select_related('card').prefetch_related('items__product').all()
+    
+    # フィルター
+    status_filter = request.GET.get('status', '')
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+    search_query = request.GET.get('q', '')
+    
+    if status_filter:
+        transactions = transactions.filter(status=status_filter)
+    if date_from:
+        transactions = transactions.filter(created_at__gte=date_from)
+    if date_to:
+        transactions = transactions.filter(created_at__lte=date_to + ' 23:59:59')
+    if search_query:
+        transactions = transactions.filter(
+            Q(card__serial_number__icontains=search_query) |
+            Q(created_by__icontains=search_query)
+        )
+    
+    # ページネーション
+    paginator = Paginator(transactions, 50)  # 50件ごと
+    page_number = request.GET.get('page')
+    transactions_page = paginator.get_page(page_number)
+    
+    # フィルター用データ
+    status_choices = [
+        ('completed', '完了'),
+        ('failed', '失敗'),
+        ('cancelled', 'キャンセル'),
+    ]
+    
+    context = {
+        'transactions': transactions_page,
+        'status_choices': status_choices,
+        'status_filter': status_filter,
+        'date_from': date_from,
+        'date_to': date_to,
+        'search_query': search_query,
+    }
+    return render(request, 'dashboard/transaction_log_list.html', context)
+
+
+@admin_required
+def transaction_log_detail(request, transaction_id):
+    """取引ログ詳細"""
+    transaction = get_object_or_404(Transaction.objects.select_related('card').prefetch_related('items__product'), id=transaction_id)
+    context = {
+        'transaction': transaction,
+    }
+    return render(request, 'dashboard/transaction_log_detail.html', context)

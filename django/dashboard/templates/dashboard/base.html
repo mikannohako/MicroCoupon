@@ -42,6 +42,14 @@
                 <span class="material-icons">people</span>
                 <span class="text">ユーザー管理</span>
             </a>
+            <a href="{% url 'dashboard:transaction_log_list' %}" class="nav-item {% if 'transaction_log' in request.resolver_match.url_name or 'transactions' in request.path %}active{% endif %}">
+                <span class="material-icons">receipt</span>
+                <span class="text">取引ログ</span>
+            </a>
+            <a href="{% url 'dashboard:activity_log_list' %}" class="nav-item {% if 'activity_log' in request.resolver_match.url_name or 'logs' in request.path %}active{% endif %}">
+                <span class="material-icons">history</span>
+                <span class="text">アクティビティログ</span>
+            </a>
         </nav>
         <div class="sidebar-footer">
             <div class="user-info">

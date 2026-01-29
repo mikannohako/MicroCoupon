@@ -1,7 +1,10 @@
 from django.db import models
 from django.utils import timezone
 from django.core.validators import MinValueValidator
+from django.contrib.auth import get_user_model
 import uuid
+
+User = get_user_model()
 
 
 class Card(models.Model):
@@ -12,6 +15,7 @@ class Card(models.Model):
         ('unused', '未使用'),
         ('active', '有効'),
         ('used', '使用済み'),
+        ('deleted', '削除済み'),
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, verbose_name='ID')
@@ -86,3 +90,62 @@ class Card(models.Model):
             self.used_at = timezone.now()
         self.is_locked = False
         self.save(update_fields=['balance', 'status', 'used_at', 'is_locked'])
+
+
+class ActivityLog(models.Model):
+    """
+    システムアクティビティログモデル
+    編集・削除不可の監査ログ
+    """
+    ACTION_CHOICES = [
+        ('card_create', 'カード作成'),
+        ('card_activate', 'カード有効化'),
+        ('card_edit', 'カード編集'),
+        ('card_delete', 'カード削除'),
+        ('product_create', '商品作成'),
+        ('product_edit', '商品編集'),
+        ('product_delete', '商品削除'),
+        ('transaction_create', '取引作成'),
+        ('transaction_complete', '取引完了'),
+        ('transaction_cancel', '取引キャンセル'),
+        ('user_create', 'ユーザー作成'),
+        ('user_edit', 'ユーザー編集'),
+        ('user_delete', 'ユーザー削除'),
+        ('user_login', 'ログイン'),
+        ('user_logout', 'ログアウト'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, verbose_name='ID')
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='実行ユーザー')
+    action = models.CharField(max_length=50, choices=ACTION_CHOICES, verbose_name='アクション')
+    description = models.TextField(verbose_name='説明')
+    target_model = models.CharField(max_length=50, blank=True, verbose_name='対象モデル')
+    target_id = models.CharField(max_length=100, blank=True, verbose_name='対象ID')
+    ip_address = models.GenericIPAddressField(null=True, blank=True, verbose_name='IPアドレス')
+    user_agent = models.TextField(blank=True, verbose_name='ユーザーエージェント')
+    extra_data = models.JSONField(default=dict, blank=True, verbose_name='追加データ')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='実行日時', db_index=True)
+    
+    class Meta:
+        verbose_name = 'アクティビティログ'
+        verbose_name_plural = 'アクティビティログ'
+        ordering = ['-created_at']
+        permissions = [
+            ('view_activity_log', 'アクティビティログを閲覧可能'),
+        ]
+    
+    def __str__(self):
+        user_str = self.user.username if self.user else '不明'
+        return f"{self.created_at.strftime('%Y-%m-%d %H:%M:%S')} - {user_str} - {self.get_action_display()}"
+    
+    def save(self, *args, **kwargs):
+        # 新規作成のみ許可（更新は不可）
+        # force_insert=True は create() メソッドで自動的に設定される
+        if 'force_insert' not in kwargs and self.pk is not None:
+            # 既に PK があり force_insert でない = 更新処理
+            raise Exception('ログの更新は許可されていません')
+        super().save(*args, **kwargs)
+    
+    def delete(self, *args, **kwargs):
+        # 削除を禁止
+        raise Exception('ログの削除は許可されていません')

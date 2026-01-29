@@ -118,6 +118,9 @@ def card_balance(request, serial_number):
     """カード残高表示（公開ページ - ログイン不要）"""
     card = get_object_or_404(Card, serial_number=serial_number)
     
+    # 取引履歴を取得（完了した取引のみ）
+    transactions = card.transactions.filter(status='completed').select_related('card').prefetch_related('items__product').order_by('-created_at')[:10]
+    
     # QRコード生成
     qr_url = f"{settings.BASE_URL}/cards/{card.serial_number}/"
     qr = qrcode.QRCode(
@@ -137,6 +140,7 @@ def card_balance(request, serial_number):
     
     return render(request, 'microcoupon/card_balance.html', {
         'card': card,
+        'transactions': transactions,
         'qr_code': qr_code_base64,
         'qr_url': qr_url,
     })

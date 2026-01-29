@@ -181,6 +181,141 @@
             height: 200px;
         }
         
+        .transaction-section {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px dashed #e2e8f0;
+        }
+        
+        .transaction-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            color: #2d3748;
+        }
+        
+        .transaction-header .material-icons {
+            font-size: 28px;
+            color: #4299e1;
+        }
+        
+        .transaction-header h3 {
+            font-size: 20px;
+            font-weight: 700;
+        }
+        
+        .transaction-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .transaction-card {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+            transition: all 0.2s;
+        }
+        
+        .transaction-card:hover {
+            border-color: #4299e1;
+            box-shadow: 0 4px 12px rgba(66, 153, 225, 0.15);
+        }
+        
+        .transaction-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .transaction-date {
+            font-size: 13px;
+            color: #718096;
+            font-weight: 600;
+        }
+        
+        .transaction-shop {
+            font-size: 13px;
+            color: #4299e1;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .transaction-shop .material-icons {
+            font-size: 16px;
+        }
+        
+        .transaction-items {
+            margin-bottom: 12px;
+        }
+        
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            font-size: 14px;
+        }
+        
+        .item-name {
+            color: #2d3748;
+            font-weight: 500;
+        }
+        
+        .item-quantity {
+            color: #718096;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+        
+        .item-price {
+            color: #2d3748;
+            font-weight: 600;
+        }
+        
+        .transaction-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 12px;
+            border-top: 2px solid #e2e8f0;
+            font-weight: 700;
+        }
+        
+        .transaction-total-label {
+            color: #2d3748;
+            font-size: 15px;
+        }
+        
+        .transaction-total-value {
+            color: #e53e3e;
+            font-size: 18px;
+        }
+        
+        .no-transactions {
+            text-align: center;
+            padding: 40px 20px;
+            color: #a0aec0;
+        }
+        
+        .no-transactions .material-icons {
+            font-size: 64px;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+        
+        .no-transactions p {
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
         @media (max-width: 600px) {
             .card-header h1 {
                 font-size: 28px;
@@ -197,6 +332,18 @@
             .serial-number {
                 font-size: 10px;
                 max-width: 200px;
+            }
+            
+            .transaction-card {
+                padding: 12px;
+            }
+            
+            .transaction-item {
+                font-size: 13px;
+            }
+            
+            .transaction-total-value {
+                font-size: 16px;
             }
         }
     </style>
@@ -252,6 +399,60 @@
                     <img src="data:image/png;base64,{{ qr_code }}" alt="QRコード">
                 </div>
             </div>
+            
+            <!-- 取引履歴 -->
+            {% if transactions %}
+            <div class="transaction-section">
+                <div class="transaction-header">
+                    <span class="material-icons">receipt_long</span>
+                    <h3>取引履歴</h3>
+                </div>
+                
+                <div class="transaction-list">
+                    {% for transaction in transactions %}
+                    <div class="transaction-card">
+                        <div class="transaction-meta">
+                            <span class="transaction-date">{{ transaction.created_at|date:"Y/m/d H:i" }}</span>
+                            <span class="transaction-shop">
+                                <span class="material-icons">store</span>
+                                {{ transaction.created_by|default:"システム" }}
+                            </span>
+                        </div>
+                        
+                        <div class="transaction-items">
+                            {% for item in transaction.items.all %}
+                            <div class="transaction-item">
+                                <span>
+                                    <span class="item-name">{{ item.product_name }}</span>
+                                    {% if item.quantity > 1 %}
+                                    <span class="item-quantity">× {{ item.quantity }}</span>
+                                    {% endif %}
+                                </span>
+                                <span class="item-price">{{ item.subtotal }}pt</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="transaction-total">
+                            <span class="transaction-total-label">合計</span>
+                            <span class="transaction-total-value">-{{ transaction.total_amount }}pt</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <div class="transaction-section">
+                <div class="transaction-header">
+                    <span class="material-icons">receipt_long</span>
+                    <h3>取引履歴</h3>
+                </div>
+                <div class="no-transactions">
+                    <span class="material-icons">shopping_cart</span>
+                    <p>まだ取引履歴がありません</p>
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
 </body>
