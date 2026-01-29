@@ -1,43 +1,49 @@
 import os
 import django
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
-django.setup()
 
-from account.models import User
-from django.test import RequestFactory
-from account.views import login_view
+def main() -> None:
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+    django.setup()
 
-# テスト用リクエストを作成
-factory = RequestFactory()
+    from account.models import User
+    from django.test import RequestFactory
+    from account.views import login_view
 
-# ログインテスト
-request = factory.post('/account/login/', {
-    'username': 'mikannohako',
-    'password': 'AdminMikan1144'  # 実際のパスワードに置き換えてください
-})
+    # テスト用リクエストを作成
+    factory = RequestFactory()
 
-# セッションを有効にするための設定
-from django.contrib.sessions.middleware import SessionMiddleware
-from django.contrib.messages.middleware import MessageMiddleware
+    # ログインテスト
+    request = factory.post('/account/login/', {
+        'username': 'mikannohako',
+        'password': 'AdminMikan1144'  # 実際のパスワードに置き換えてください
+    })
 
-middleware = SessionMiddleware(lambda x: None)
-middleware.process_request(request)
-request.session.save()
+    # セッションを有効にするための設定
+    from django.contrib.sessions.middleware import SessionMiddleware
+    from django.contrib.messages.middleware import MessageMiddleware
 
-msg_middleware = MessageMiddleware(lambda x: None)
-msg_middleware.process_request(request)
+    middleware = SessionMiddleware(lambda x: None)
+    middleware.process_request(request)
+    request.session.save()
 
-# ログイン実行
-response = login_view(request)
+    msg_middleware = MessageMiddleware(lambda x: None)
+    msg_middleware.process_request(request)
 
-print(f"ログインテスト実行完了")
-print(f"レスポンスステータス: {response.status_code}")
+    # ログイン実行
+    response = login_view(request)
 
-# ログを確認
-from microcoupon.models import ActivityLog
+    print(f"ログインテスト実行完了")
+    print(f"レスポンスステータス: {response.status_code}")
 
-recent_login_logs = ActivityLog.objects.filter(action='user_login').order_by('-created_at')[:3]
-print(f"\n最新のログインログ:")
-for log in recent_login_logs:
-    print(f"  - {log.created_at.strftime('%Y-%m-%d %H:%M:%S')} - {log.user.username if log.user else 'Unknown'} - {log.description}")
+    # ログを確認
+    from microcoupon.models import ActivityLog
+
+    recent_login_logs = ActivityLog.objects.filter(action='user_login').order_by('-created_at')[:3]
+    print(f"\n最新のログインログ:")
+    for log in recent_login_logs:
+        print(f"  - {log.created_at.strftime('%Y-%m-%d %H:%M:%S')} - {log.user.username if log.user else 'Unknown'} - {log.description}")
+
+
+if __name__ == '__main__':
+    main()
