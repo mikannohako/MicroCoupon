@@ -54,23 +54,19 @@
     <div class="register-container">
         <!-- 商品選択エリア -->
         <div class="products-section">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <div>
-                    <h2 style="margin: 0;">商品選択</h2>
-                    {% if current_room %}
-                    <p style="margin: 5px 0 0 0; color: #718096; font-size: 14px;">
-                        <span class="material-icons" style="font-size: 16px; vertical-align: middle;">school</span>
-                        {{ current_room.name }}
-                    </p>
-                    {% endif %}
-                </div>
-                {% if not is_admin and current_room %}
-                <button onclick="openProductModal()" style="padding: 10px 20px; background: #5a67d8; color: white; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
-                    <span class="material-icons">add</span>
-                    <span>商品を追加</span>
-                </button>
-                {% endif %}
-            </div>
+            <h2 style="margin: 0 0 8px 0;">商品選択</h2>
+            {% if current_room %}
+            <p style="margin: 0 0 16px 0; color: #718096; font-size: 13px; display: flex; align-items: center; gap: 6px;">
+                <span class="material-icons" style="font-size: 16px;">school</span>
+                {{ current_room.name }}
+            </p>
+            {% endif %}
+            {% if not is_admin and current_room %}
+            <button onclick="openProductModal()" style="width: 100%; padding: 10px 16px; background: #5a67d8; color: white; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: 500; margin-bottom: 16px;">
+                <span class="material-icons" style="font-size: 20px;">add</span>
+                <span>商品を追加</span>
+            </button>
+            {% endif %}
             
             <div class="products-grid" id="productsGrid">
                 {% for category in categories %}
@@ -203,21 +199,21 @@
             <form method="post" id="productForm" style="margin: 20px 0;">
                 {% csrf_token %}
                 <div style="margin-bottom: 15px;">
-                    <label style="display: block; margin-bottom: 5px; font-weight: 500;">品目 <span style="color: #dc3545;">*</span></label>
-                    <input type="text" name="name" id="productName" required style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: 500; font-size: 14px;">品目 <span style="color: #dc3545;">*</span></label>
+                    <input type="text" name="name" id="productName" required style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 16px; box-sizing: border-box;">
                 </div>
                 <div style="margin-bottom: 15px;">
-                    <label style="display: block; margin-bottom: 5px; font-weight: 500;">値段(pt) <span style="color: #dc3545;">*</span></label>
-                    <input type="number" name="price" id="productPrice" required min="1" step="1" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: 500; font-size: 14px;">値段(pt) <span style="color: #dc3545;">*</span></label>
+                    <input type="number" name="price" id="productPrice" required min="1" step="1" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 16px; box-sizing: border-box;">
                     <small style="color: #718096; font-size: 12px;">※ 1以上の整数を入力してください</small>
                 </div>
                 <div style="margin-bottom: 15px;">
-                    <label style="display: block; margin-bottom: 5px; font-weight: 500;">説明</label>
-                    <textarea name="description" id="productDescription" rows="3" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px;"></textarea>
+                    <label style="display: block; margin-bottom: 5px; font-weight: 500; font-size: 14px;">説明</label>
+                    <textarea name="description" id="productDescription" rows="3" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 16px; box-sizing: border-box; font-family: inherit;"></textarea>
                 </div>
                 <div style="margin-bottom: 15px;">
-                    <label style="display: block; margin-bottom: 5px; font-weight: 500;">表示順</label>
-                    <input type="number" name="display_order" id="productDisplayOrder" value="0" min="0" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 14px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: 500; font-size: 14px;">表示順</label>
+                    <input type="number" name="display_order" id="productDisplayOrder" value="0" min="0" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 16px; box-sizing: border-box;">
                 </div>
                 <div id="productActiveField" style="margin-bottom: 15px; display: none;">
                     <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">

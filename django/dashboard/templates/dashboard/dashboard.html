@@ -87,26 +87,5 @@
         </div>
     </div>
 
-    <div class="quick-actions">
-        <h2>クイックアクション</h2>
-        <div class="action-buttons">
-            <a href="{% url 'dashboard:card_create' %}" class="action-btn primary">
-                <span class="material-icons">add_card</span>
-                <span>新規カード発行</span>
-            </a>
-            <a href="{% url 'dashboard:card_list' %}" class="action-btn secondary">
-                <span class="material-icons">list_alt</span>
-                <span>カード一覧</span>
-            </a>
-            <a href="{% url 'dashboard:card_list' %}?status=active" class="action-btn info">
-                <span class="material-icons">search</span>
-                <span>有効カード検索</span>
-            </a>
-            <a href="{% url 'dashboard:product_list' %}" class="action-btn accent">
-                <span class="material-icons">shopping_cart</span>
-                <span>商品一覧</span>
-            </a>
-        </div>
-    </div>
 </div>
 {% endblock %}

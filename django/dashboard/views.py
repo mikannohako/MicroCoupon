@@ -176,7 +176,11 @@ def product_list(request):
     rooms = Room.objects.filter(is_active=True)
     if room_filter:
         products = products.filter(room_id=room_filter)
-    context = {'products': products, 'categories': rooms, 'category_filter': room_filter}
+    context = {
+        'products': products,
+        'categories': rooms,
+        'category_filter': room_filter,
+    }
     return render(request, 'dashboard/product_list.html', context)
 
 

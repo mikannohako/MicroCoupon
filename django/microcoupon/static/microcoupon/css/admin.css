@@ -7,6 +7,23 @@
     box-sizing: border-box;
 }
 
+/* Material Icons Fix */
+.material-icons {
+    font-family: 'Material Icons';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    text-transform: none;
+    letter-spacing: normal;
+    word-wrap: normal;
+    white-space: nowrap;
+    direction: ltr;
+}
+
 :root {
     /* メインカラー - 落ち着いたブルーグレー */
     --primary-color: #4a5568;
@@ -252,8 +269,55 @@ body {
     display: flex;
     align-items: center;
     gap: 15px;
+    margin-left: auto;
 }
 
+.topbar .user-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #f7fafc;
+    border-radius: 20px;
+}
+
+.topbar .user-badge .material-icons {
+    font-size: 20px;
+    color: #5a67d8;
+}
+
+.topbar .user-name {
+    font-weight: 500;
+    color: #2d3748;
+    font-size: 14px;
+}
+
+.topbar .logout-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: transparent;
+    color: #4a5568;
+    text-decoration: none;
+    border-radius: 8px;
+    border: 1px solid #cbd5e0;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.2s;
+    box-shadow: none;
+}
+
+.topbar .logout-btn:hover {
+    background: #edf2f7;
+    border-color: #a0aec0;
+}
+
+.topbar .logout-btn .material-icons {
+    font-size: 18px;
+}
+
+/* 互換性のため残す */
 .user-name {
     font-weight: 500;
     color: var(--text-secondary);
@@ -377,6 +441,8 @@ body {
     align-items: center;
     justify-content: center;
     color: white;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.15);
 }
 
 .stat-icon .material-icons {
@@ -401,6 +467,14 @@ body {
 
 .stat-icon-warning {
     background: var(--warning-color);
+}
+
+.stat-icon-danger {
+    background: var(--danger-color);
+}
+
+.stat-icon-accent {
+    background: var(--accent-color);
 }
 
 .stat-info h3 {
@@ -883,6 +957,28 @@ body {
 }
 
 /* ========================================
+   ユーティリティクラス
+======================================== */
+.table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ボタングループ */
+.btn-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* カードグリッド */
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+/* ========================================
    レスポンシブデザイン
 ======================================== */
 .sidebar-overlay {
@@ -894,19 +990,42 @@ body {
     height: 100%;
     background: rgba(0, 0, 0, 0.5);
     z-index: 999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.show {
+    display: block;
+    opacity: 1;
+}
+
+/* タブレット対応 (1024px以下) */
+@media (max-width: 1024px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .stat-card.wide {
+        grid-column: span 2;
+    }
+    
+    .card-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+    
+    .content {
+        padding: 24px;
+    }
 }
 
 @media (max-width: 768px) {
     .sidebar {
-        transform: translateX(-280px);
+        transform: translateX(-280px) !important;
     }
     
     .sidebar.open {
-        transform: translateX(0);
-    }
-    
-    .sidebar-overlay {
-        display: block;
+        transform: translateX(0) !important;
     }
     
     .close-btn {
@@ -922,11 +1041,12 @@ body {
     }
     
     .stats-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
     }
     
     .stat-card.wide {
-        grid-column: span 1;
+        grid-column: span 2;
     }
     
     .detail-row {
@@ -940,45 +1060,202 @@ body {
     
     .action-btn {
         justify-content: center;
+        width: 100%;
     }
     
     .content {
-        padding: 20px;
+        padding: 16px;
     }
     
     .list-header {
         flex-direction: column;
         align-items: stretch;
+        gap: 12px;
+    }
+    
+    .list-header .search-box {
+        width: 100%;
+    }
+    
+    /* トップバーのユーザーバッジを隠す（スマホ） */
+    .topbar .user-badge {
+        display: none;
+    }
+    
+    /* スマホでのログアウトボタン調整 */
+    .topbar .logout-btn {
+        padding: 8px 12px !important;
+    }
+    
+    .topbar .logout-btn .text {
+        display: none;
+    }
+    
+    /* カード詳細の改善 */
+    .card-detail,
+    .card-form {
+        padding: 16px;
+    }
+    
+    .detail-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    /* テーブルをスクロール可能に */
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 0 -16px;
+        padding: 0 16px;
+    }
+    
+    .data-table {
+        min-width: 600px;
+    }
+    
+    .data-table th,
+    .data-table td {
+        padding: 10px 12px;
+        font-size: 13px;
+        white-space: nowrap;
+    }
+    
+    /* フォーム要素の改善 */
+    .form-group {
+        margin-bottom: 16px;
+    }
+    
+    .form-row {
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    .form-control,
+    .form-select {
+        font-size: 16px; /* iOS のズーム防止 */
+    }
+    
+    /* フィルターセクション */
+    .filter-section {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .filter-section select {
+        width: 100%;
+    }
+    
+    /* ページネーション */
+    .pagination {
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+    }
+    
+    .pagination .page-link {
+        min-width: 40px;
+        padding: 8px;
     }
 }
 
 @media (max-width: 480px) {
     .topbar {
-        padding: 14px 20px;
+        padding: 12px 16px;
     }
     
     .topbar h1 {
-        font-size: 18px;
+        font-size: 16px;
     }
     
     .user-name {
         display: none;
     }
     
+    .content {
+        padding: 12px;
+    }
+    
+    /* 統計カードを1列に */
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
     .stat-card {
-        padding: 18px;
+        padding: 16px;
+    }
+    
+    .stat-card.wide {
+        grid-column: span 1;
     }
     
     .stat-icon {
-        width: 48px;
-        height: 48px;
+        width: 44px;
+        height: 44px;
     }
     
     .stat-icon .material-icons {
-        font-size: 24px;
+        font-size: 22px;
     }
     
     .stat-value {
-        font-size: 22px;
+        font-size: 20px;
+    }
+    
+    .stat-label {
+        font-size: 12px;
+    }
+    
+    /* ボタンのサイズ調整 */
+    .btn-primary,
+    .btn-secondary,
+    .btn-danger {
+        padding: 10px 16px;
+        font-size: 14px;
+    }
+    
+    /* カード一覧 */
+    .card-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    /* アクションボタン */
+    .action-buttons {
+        gap: 8px;
+    }
+    
+    /* テーブルのさらなる調整 */
+    .table-container {
+        margin: 0 -12px;
+        padding: 0 12px;
+    }
+    
+    .data-table {
+        min-width: 500px;
+        font-size: 12px;
+    }
+    
+    .data-table th,
+    .data-table td {
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+    
+    /* ページネーション */
+    .pagination {
+        font-size: 13px;
+    }
+    
+    .pagination .page-link {
+        min-width: 36px;
+        padding: 6px;
+    }
+    
+    /* モーダルの調整 */
+    .modal-content {
+        margin: 20px;
+        padding: 20px;
     }
 }
