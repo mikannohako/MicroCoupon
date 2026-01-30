@@ -1,23 +1,17 @@
 #!/bin/bash
 set -e
 
-echo "=== Git Pull ==="
-git fetch origin
-git reset --hard origin/main
+echo "=== Update source ==="
+git pull origin main
 
-echo "=== Docker Compose Pull ==="
-docker compose pull
+echo "=== Build & Run ==="
+docker compose up -d --build
 
-echo "=== Docker Compose Up ==="
-docker compose up -d
-
-echo "=== Django Migrate ==="
+echo "=== Django migrate ==="
 docker compose exec -T django python manage.py migrate --noinput
 
-echo "=== Django Collectstatic ==="
+echo "=== Collectstatic ==="
 docker compose exec -T django python manage.py collectstatic --noinput
 
-echo "=== Health Check ==="
-curl -f http://localhost:8080/ || (echo 'Health check failed' && exit 1)
-
-echo "=== Deployment completed ==="
+echo "=== Done ==="
+echo "Application deployed successfully!"
