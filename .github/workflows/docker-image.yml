@@ -108,11 +108,6 @@ jobs:
             set -e
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
             cd /home/mikan/microcoupon
-            git pull origin main
-            docker compose pull
-            docker compose up -d
-            # マイグレーション実行
-            docker compose exec -T django python manage.py migrate
-            # 静的ファイル生成
-            docker compose exec -T django python manage.py collectstatic --noinput --clear
+            chmod +x deploy.sh
+            ./deploy.sh
             docker image prune -f
