@@ -1,30 +1,22 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
-echo "=== Apply migrations ==="
-python manage.py migrate --noinput
-
-echo "=== Collect static files ==="
-python manage.py collectstatic --noinput
-
-echo "=== Deployment completed ==="
 echo "=== Git Pull ==="
-git pull
+git pull origin main
 
-echo "=== Docker Compose Build & Pull ==="
+echo "=== Docker Compose Pull ==="
 docker compose pull
-docker compose build
 
-echo "=== Docker Compose Up (Recreate) ==="
+echo "=== Docker Compose Up ==="
 docker compose up -d
 
 echo "=== Django Migrate ==="
-docker compose exec microcoupon-django python manage.py migrate --noinput
+docker compose exec -T microcoupon-django python manage.py migrate --noinput
 
 echo "=== Django Collectstatic ==="
-docker compose exec microcoupon-django python manage.py collectstatic --noinput
+docker compose exec -T microcoupon-django python manage.py collectstatic --noinput
 
-echo "=== Health Check (nginx) ==="
+echo "=== Health Check ==="
 curl -f http://localhost/ || (echo 'Health check failed' && exit 1)
 
 echo "=== Deployment completed ==="
