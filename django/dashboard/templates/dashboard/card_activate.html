@@ -272,6 +272,8 @@
         overflow: hidden;
         margin-bottom: 20px;
         max-width: 100%;
+        min-height: 260px;
+        aspect-ratio: 1;
     }
     
     #qr-reader {
@@ -406,39 +408,77 @@
 
 <script>
     let qrScanner = null;
+    let qrScannerStarting = false;
     
     function openQRScanner() {
         const modal = document.getElementById('qrScannerModal');
         modal.classList.add('active');
-        
-        qrScanner = new Html5Qrcode("qr-reader");
-        qrScanner.start(
-            { facingMode: "environment" },
-            {
-                fps: 10,
-                qrbox: { width: 200, height: 200 }
-            },
-            onScanSuccess,
-            onScanError
-        ).catch(err => {
-            console.error('カメラの起動に失敗しました:', err);
-            alert('カメラの起動に失敗しました。カメラの権限を確認してください。');
-            closeQRScanner();
-        });
+
+        if (qrScannerStarting) return;
+        qrScannerStarting = true;
+
+        const startScanner = () => {
+            const readerId = "qr-reader";
+            const readerEl = document.getElementById(readerId);
+            if (readerEl) {
+                readerEl.innerHTML = '';
+            }
+
+            qrScanner = new Html5Qrcode(readerId);
+
+            Html5Qrcode.getCameras().then(cameras => {
+                let cameraId = null;
+                if (Array.isArray(cameras) && cameras.length > 0) {
+                    const backCamera = cameras.find(cam => /back|rear|environment/i.test(cam.label));
+                    cameraId = (backCamera || cameras[0]).id;
+                }
+
+                const constraints = cameraId
+                    ? { deviceId: { exact: cameraId } }
+                    : { facingMode: "environment" };
+
+                return qrScanner.start(
+                    constraints,
+                    {
+                        fps: 10,
+                        qrbox: { width: 200, height: 200 }
+                    },
+                    onScanSuccess,
+                    onScanError
+                );
+            }).catch(err => {
+                console.error('カメラの起動に失敗しました:', err);
+                alert('カメラの起動に失敗しました。カメラの権限を確認してください。');
+                closeQRScanner();
+            }).finally(() => {
+                qrScannerStarting = false;
+            });
+        };
+
+        requestAnimationFrame(() => setTimeout(startScanner, 100));
     }
     
     function closeQRScanner() {
+        const modal = document.getElementById('qrScannerModal');
+        const readerEl = document.getElementById('qr-reader');
         if (qrScanner) {
-            qrScanner.stop().then(() => {
-                qrScanner = null;
-                document.getElementById('qrScannerModal').classList.remove('active');
+            const scanner = qrScanner;
+            qrScanner = null;
+            scanner.stop().then(() => {
+                return scanner.clear();
             }).catch(err => {
                 console.error('スキャナーの停止に失敗しました:', err);
-                qrScanner = null;
-                document.getElementById('qrScannerModal').classList.remove('active');
+            }).finally(() => {
+                if (readerEl) {
+                    readerEl.innerHTML = '';
+                }
+                modal.classList.remove('active');
             });
         } else {
-            document.getElementById('qrScannerModal').classList.remove('active');
+            if (readerEl) {
+                readerEl.innerHTML = '';
+            }
+            modal.classList.remove('active');
         }
     }
     

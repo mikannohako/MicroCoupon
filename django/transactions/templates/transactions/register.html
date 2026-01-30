@@ -382,43 +382,84 @@
             observer.observe(cartEl);
         });
         
+        let qrScannerStarting = false;
+
         function openQRScanner() {
             const modal = document.getElementById('qrModal');
             modal.classList.add('active');
-            
-            const config = {
-                fps: 10,
-                qrbox: { width: 200, height: 200 },
-                aspectRatio: 1.0,
-                disableFlip: false,
-                formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ]
+
+            if (qrScannerStarting) return;
+            qrScannerStarting = true;
+
+            const startScanner = () => {
+                const config = {
+                    fps: 10,
+                    qrbox: { width: 200, height: 200 },
+                    aspectRatio: 1.0,
+                    disableFlip: false,
+                    formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ]
+                };
+
+                const readerId = "qr-reader";
+                const readerEl = document.getElementById(readerId);
+                if (readerEl) {
+                    readerEl.innerHTML = '';
+                }
+
+                qrScanner = new Html5Qrcode(readerId);
+
+                Html5Qrcode.getCameras().then(cameras => {
+                    let cameraId = null;
+                    if (Array.isArray(cameras) && cameras.length > 0) {
+                        const backCamera = cameras.find(cam => /back|rear|environment/i.test(cam.label));
+                        cameraId = (backCamera || cameras[0]).id;
+                    }
+
+                    const constraints = cameraId
+                        ? { deviceId: { exact: cameraId } }
+                        : { facingMode: "environment" };
+
+                    return qrScanner.start(
+                        constraints,
+                        config,
+                        onScanSuccess,
+                        onScanError
+                    );
+                }).catch(err => {
+                    console.error('カメラの起動に失敗しました:', err);
+                    alert('カメラの起動に失敗しました。カメラへのアクセスを許可してください。');
+                    closeQRScanner();
+                }).finally(() => {
+                    qrScannerStarting = false;
+                });
             };
-            
-            qrScanner = new Html5Qrcode("qr-reader");
-            qrScanner.start(
-                { facingMode: "environment" },
-                config,
-                onScanSuccess,
-                onScanError
-            ).catch(err => {
-                console.error('カメラの起動に失敗しました:', err);
-                alert('カメラの起動に失敗しました。カメラへのアクセスを許可してください。');
-                closeQRScanner();
-            });
+
+            requestAnimationFrame(() => setTimeout(startScanner, 100));
         }
         
         function closeQRScanner() {
+            const modal = document.getElementById('qrModal');
+            const readerEl = document.getElementById('qr-reader');
+
             if (qrScanner) {
-                qrScanner.stop().then(() => {
-                    qrScanner = null;
-                    document.getElementById('qrModal').classList.remove('active');
+                const scanner = qrScanner;
+                qrScanner = null;
+
+                scanner.stop().then(() => {
+                    return scanner.clear();
                 }).catch(err => {
                     console.error('スキャナーの停止に失敗しました:', err);
-                    qrScanner = null;
-                    document.getElementById('qrModal').classList.remove('active');
+                }).finally(() => {
+                    if (readerEl) {
+                        readerEl.innerHTML = '';
+                    }
+                    modal.classList.remove('active');
                 });
             } else {
-                document.getElementById('qrModal').classList.remove('active');
+                if (readerEl) {
+                    readerEl.innerHTML = '';
+                }
+                modal.classList.remove('active');
             }
         }
         
