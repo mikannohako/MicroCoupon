@@ -114,6 +114,11 @@ def card_detail(request, card_id):
     })
 
 
+def card_lookup(request):
+    """カード残高照会ランディングページ（公開ページ - ログイン不要）"""
+    return render(request, 'microcoupon/card_lookup.html')
+
+
 def card_balance(request, serial_number):
     """カード残高表示（公開ページ - ログイン不要）"""
     card = get_object_or_404(Card, serial_number=serial_number)
