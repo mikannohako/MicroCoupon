@@ -53,7 +53,7 @@ services:
     volumes:
       - ./nginx/default.conf.template:/etc/nginx/templates/default.conf.template:ro
       - ./django/staticfiles:/app/staticfiles
-      - ${BASIC_AUTH_FILE_HOST}:/etc/nginx/.htpasswd:ro
+      - ${BASIC_AUTH_FILE_HOST:-./nginx/.htpasswd.dummy}:/etc/nginx/.htpasswd:ro
     depends_on:
       - django
       - db
