@@ -100,21 +100,35 @@ MicroCoupon/
 
 プロジェクトルートに`.env`ファイルを作成してください：
 
-```env
-# データベース設定
-POSTGRES_DB=microcoupon_db
-POSTGRES_USER=microcoupon_user
-POSTGRES_PASSWORD=your_secure_password
+**方法1: テンプレートをコピーして作成（推奨）**
+```bash
+cp .env.template .env
+```
 
+**方法2: 手動で作成**
+```env
 # Django設定
-SECRET_KEY=your-secret-key-here
 DEBUG=True
+SECRET_KEY=your-secret-key-here
+ADMIN_PATH=admin
+
+# ドメイン設定
 DOMAIN_NAME=localhost:8080
 BASE_URL=http://localhost:8080
 
-# VPS環境での設定（オプション）
-BASIC_AUTH_FILE_HOST=/home/deploy/.htpasswd
+# データベース設定
+POSTGRES_DB=microcoupon
+POSTGRES_USER=microcoupon_user
+POSTGRES_PASSWORD=microcoupon_pass
+
+# Nginx Basic Auth（本番環境のみ、開発環境ではコメントアウト）
+# BASIC_AUTH_FILE_HOST=/home/deploy/.htpasswd
 ```
+
+**重要な注意事項:**
+- `SECRET_KEY`は必ず変更してください（50文字以上のランダムな文字列を推奨）
+- `BASIC_AUTH_FILE_HOST`は開発環境ではコメントアウトまたは削除してください
+- 本番環境では`DEBUG=False`に設定し、強力な`SECRET_KEY`を使用してください
 
 ### ローカル開発環境での起動
 
@@ -209,6 +223,68 @@ docker compose logs -f django
 docker compose logs -f nginx
 docker compose logs -f db
 ```
+
+## トラブルシューティング
+
+### システムにアクセスできない場合
+
+**症状**: Docker Composeが起動しない、またはエラーが発生する
+
+**原因と解決方法**:
+
+1. **`.env`ファイルが存在しない**
+   ```bash
+   # テンプレートから作成
+   cp .env.template .env
+   ```
+
+2. **`BASIC_AUTH_FILE_HOST`が設定されているが、ファイルが存在しない**
+   - 開発環境では`.env`ファイル内の`BASIC_AUTH_FILE_HOST`行をコメントアウトしてください
+   ```env
+   # BASIC_AUTH_FILE_HOST=/home/deploy/.htpasswd
+   ```
+
+3. **環境変数が正しく読み込まれない**
+   ```bash
+   # docker-composeの設定を確認
+   docker compose config
+   
+   # サービスを再起動
+   docker compose down
+   docker compose up -d
+   ```
+
+4. **データベースのマイグレーションが適用されていない**
+   ```bash
+   docker compose exec django python manage.py migrate
+   ```
+
+5. **静的ファイルが収集されていない**
+   ```bash
+   docker compose exec django python manage.py collectstatic --noinput
+   ```
+
+### 管理画面（/admin/）にアクセスできない場合
+
+開発環境では、管理画面はBasic認証で保護されています。
+
+**開発環境で管理画面のBasic認証を無効にする場合:**
+
+1. `nginx/default.conf`を編集して、`/admin/`のBasic認証部分をコメントアウト
+2. または、本番用の`.htpasswd`ファイルを作成:
+   ```bash
+   # htpasswdファイルを作成（ユーザー名: admin, パスワード: admin）
+   docker run --rm httpd:2.4-alpine htpasswd -nbB admin admin > nginx/.htpasswd.local
+   ```
+3. `.env`ファイルを更新:
+   ```env
+   BASIC_AUTH_FILE_HOST=./nginx/.htpasswd.local
+   ```
+4. Docker Composeを再起動:
+   ```bash
+   docker compose down
+   docker compose up -d
+   ```
 
 ## ライセンス
 
