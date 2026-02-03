@@ -544,7 +544,7 @@ def generate_cards_pdf(cards):
         # 残高情報を下に表示（金額表記）
         balance_y = y + 3 * mm
         c.setFont("Helvetica-Bold", 9)
-        balance_text = f"¥{card.balance}"
+        balance_text = f"{card.balance}pt"
         c.drawString(text_x, balance_y, balance_text)
         
         # ステータスラベルを左下に表示
