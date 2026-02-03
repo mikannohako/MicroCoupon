@@ -406,6 +406,22 @@
                     readerEl.innerHTML = '';
                 }
 
+                // 既存インスタンスがあれば停止・クリア
+                if (qrScanner) {
+                    try {
+                        qrScanner.stop().then(() => qrScanner.clear()).catch(()=>{});
+                    } catch(e) {}
+                    qrScanner = null;
+                }
+
+                // html5-qrcodeライブラリが読み込まれているか確認
+                if (typeof Html5Qrcode === 'undefined') {
+                    alert('QRコードライブラリの読み込みに失敗しました。ネットワーク接続やCDNブロックを確認してください。');
+                    modal.classList.remove('active');
+                    qrScannerStarting = false;
+                    return;
+                }
+
                 qrScanner = new Html5Qrcode(readerId);
 
                 Html5Qrcode.getCameras().then(cameras => {
@@ -427,8 +443,13 @@
                     );
                 }).catch(err => {
                     console.error('カメラの起動に失敗しました:', err);
-                    alert('カメラの起動に失敗しました。カメラへのアクセスを許可してください。');
-                    closeQRScanner();
+                    let msg = 'カメラの起動に失敗しました。';
+                    if (location.protocol !== 'https:') {
+                        msg += '\nこの機能はHTTPSまたはlocalhostでのみ動作します。';
+                    }
+                    msg += '\nカメラへのアクセス権限やデバイスの接続状況をご確認ください。';
+                    alert(msg);
+                    modal.classList.remove('active');
                 }).finally(() => {
                     qrScannerStarting = false;
                 });
