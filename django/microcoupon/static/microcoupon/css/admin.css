@@ -56,6 +56,9 @@
     /* ボーダー */
     --border-color: #e2e8f0;
     --border-light: #f7fafc;
+
+    /* 余白の統一 */
+    --panel-padding: 24px;
     
     /* シャドウ */
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
@@ -499,7 +502,7 @@ body {
 ======================================== */
 .quick-actions {
     background: var(--bg-primary);
-    padding: 28px;
+    padding: var(--panel-padding);
     border-radius: 8px;
     box-shadow: var(--shadow-sm);
     border: 1px solid var(--border-color);
@@ -952,7 +955,7 @@ body {
 }
 
 .detail-actions {
-    padding: 20px 30px;
+    padding: var(--panel-padding);
     background: var(--bg-secondary);
     display: flex;
     gap: 10px;
@@ -1024,11 +1027,17 @@ body {
 @media (max-width: 768px) {
     .sidebar {
         transform: translateX(-280px) !important;
+        height: 100vh;
+        overflow-y: auto;
+        padding-bottom: 20px;
     }
     
     .sidebar.open {
         transform: translateX(0) !important;
         z-index: 1100;
+        height: 100vh;
+        overflow-y: auto;
+        padding-bottom: 20px;
     }
     
     .close-btn {
