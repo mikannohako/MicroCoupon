@@ -7,7 +7,7 @@ from django.db.models import Sum, Count
 from django.utils import timezone
 from django.contrib import messages
 from .models import Transaction, TransactionItem
-from microcoupon.models import Card
+from microcoupon.models import Card, TemporaryCardCode
 from microcoupon.utils import log_activity
 from products.models import Product
 from account.models import Room
@@ -85,10 +85,10 @@ def process_payment(request):
     card = None
     try:
         data = json.loads(request.body)
-        serial_number = data.get('serial_number')
+        card_input = (data.get('card_input') or data.get('serial_number') or '').strip()
         items = data.get('items', [])
         
-        if not serial_number or not items:
+        if not card_input or not items:
             return JsonResponse({
                 'success': False,
                 'error': 'カード番号または商品が指定されていません'
@@ -99,8 +99,22 @@ def process_payment(request):
         
         # トランザクション開始
         with db_transaction.atomic():
-            # カード取得（行ロック付き）
-            card = Card.objects.select_for_update().get(serial_number=serial_number)
+            used_temporary_code = False
+            temp_code_to_consume = None
+
+            # カード取得（シリアル番号優先、見つからない場合は一時コード）
+            try:
+                card = Card.objects.select_for_update().get(serial_number=card_input)
+            except Card.DoesNotExist:
+                temp_code_to_consume = TemporaryCardCode.objects.select_for_update().filter(
+                    code=card_input,
+                    expires_at__gt=timezone.now(),
+                ).first()
+                if not temp_code_to_consume:
+                    raise Card.DoesNotExist
+
+                card = Card.objects.select_for_update().get(id=temp_code_to_consume.card_id)
+                used_temporary_code = True
             
             # 二重決済防止チェック
             if card.is_locked:
@@ -147,6 +161,9 @@ def process_payment(request):
                         product_price=item['price'],
                         quantity=item.get('quantity', 1)
                     )
+
+                if temp_code_to_consume:
+                    temp_code_to_consume.delete()
                 
                 # 決済完了後、5秒後にロックを解除
                 unlock_card_after_delay(card.id, delay=5)
@@ -158,7 +175,8 @@ def process_payment(request):
                     description=f'決済完了: {total_amount}pt (カード: {card.serial_number})',
                     target_model='Transaction',
                     target_id=transaction.id,
-                    request=request
+                    request=request,
+                    extra_data={'used_temporary_code': used_temporary_code}
                 )
                 
                 return JsonResponse({
@@ -177,7 +195,7 @@ def process_payment(request):
     except Card.DoesNotExist:
         return JsonResponse({
             'success': False,
-            'error': 'カードが見つかりません'
+            'error': 'カードが見つかりません（4桁コードの有効期限切れの可能性があります）'
         })
     except Exception as e:
         # エラーログ記録

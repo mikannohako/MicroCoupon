@@ -1,11 +1,12 @@
 ﻿from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.db import transaction as db_transaction
 from django.db.models import Sum, Q
 from django.conf import settings
 from django.http import HttpResponse
 from django.core.paginator import Paginator
 from django.utils import timezone
-from microcoupon.models import Card, ActivityLog
+from microcoupon.models import Card, ActivityLog, TemporaryCardCode
 from microcoupon.utils import log_activity
 from products.models import Product
 from account.models import Room, User
@@ -335,18 +336,37 @@ def product_delete(request, product_id):
 def card_activate(request):
     result = None
     if request.method == 'POST':
-        serial_number = request.POST.get('serial_number', '').strip()
-        if serial_number:
+        card_input = request.POST.get('card_input', '').strip()
+        if card_input:
             try:
-                card = Card.objects.get(serial_number=serial_number)
+                used_temporary_code = False
+                temp_code_to_consume = None
+                with db_transaction.atomic():
+                    try:
+                        card = Card.objects.select_for_update().get(serial_number=card_input)
+                    except Card.DoesNotExist:
+                        temp_code_to_consume = TemporaryCardCode.objects.select_for_update().filter(
+                            code=card_input,
+                            expires_at__gt=timezone.now(),
+                        ).first()
+                        if not temp_code_to_consume:
+                            raise Card.DoesNotExist
+                        card = Card.objects.select_for_update().get(id=temp_code_to_consume.card_id)
+                        used_temporary_code = True
+
                 if card.status == 'unused':
                     card.status = 'active'
                     card.activated_at = timezone.now()
                     card.save()
+                    if temp_code_to_consume:
+                        temp_code_to_consume.delete()
                     log_activity(request.user, 'card_activate', 
                                f'カード {card.serial_number} を有効化',
                                'Card', card.id, request,
-                               {'balance': card.balance})
+                               {
+                                   'balance': card.balance,
+                                   'used_temporary_code': used_temporary_code,
+                               })
                     result = {'success': True, 'message': 'カードを有効化しました', 'card': card}
                 elif card.status == 'active':
                     result = {'success': False, 'message': 'このカードは既に有効化されています', 'card': card}
@@ -355,9 +375,9 @@ def card_activate(request):
                 elif card.status == 'deleted':
                     result = {'success': False, 'message': 'このカードは削除済みです', 'card': card}
             except Card.DoesNotExist:
-                result = {'success': False, 'message': 'カードが見つかりません'}
+                result = {'success': False, 'message': 'カードが見つかりません（4桁コードの有効期限切れの可能性があります）'}
         else:
-            result = {'success': False, 'message': 'シリアル番号を入力してください'}
+            result = {'success': False, 'message': '4桁コードまたはシリアル番号を入力してください'}
     return render(request, 'dashboard/card_activate.html', {'result': result})
 
 

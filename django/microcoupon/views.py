@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Count, Sum, Q
 from django.conf import settings
+from django.utils import timezone
 from .models import Card
 import uuid
 import qrcode
@@ -121,7 +122,25 @@ def card_lookup(request):
 
 def card_balance(request, serial_number):
     """カード残高表示（公開ページ - ログイン不要）"""
-    card = get_object_or_404(Card, serial_number=serial_number)
+    normalized_serial = (serial_number or '').strip()
+    card = Card.objects.filter(serial_number=normalized_serial).first()
+    if not card:
+        return render(request, 'microcoupon/card_lookup.html', {
+            'lookup_error': '入力されたシリアル番号のカードは見つかりませんでした。',
+            'entered_serial': normalized_serial,
+        })
+
+    issued_temporary_code = None
+    temporary_code_expires_at = None
+    if request.method == 'POST':
+        card.issue_temporary_code(valid_minutes=5)
+        # PRGパターンでリロード時のPOST再送信を防止
+        return redirect('microcoupon:card_balance', serial_number=card.serial_number)
+    else:
+        active_temp_code = card.temporary_codes.filter(expires_at__gt=timezone.now()).first()
+        if active_temp_code:
+            issued_temporary_code = active_temp_code.code
+            temporary_code_expires_at = active_temp_code.expires_at
     
     # 取引履歴を取得（完了した取引のみ）
     transactions = card.transactions.filter(status='completed').select_related('card').prefetch_related('items__product').order_by('-created_at')[:10]
@@ -148,4 +167,6 @@ def card_balance(request, serial_number):
         'transactions': transactions,
         'qr_code': qr_code_base64,
         'qr_url': qr_url,
+        'temporary_code': issued_temporary_code,
+        'temporary_code_expires_at': temporary_code_expires_at,
     })

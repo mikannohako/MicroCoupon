@@ -378,7 +378,7 @@
 <div class="activate-container">
     <div class="activate-header">
         <h1>カードの有効化</h1>
-        <p>QRコードをスキャンするか、シリアル番号を入力してカードを有効化します</p>
+        <p>QRコードをスキャンするか、4桁コード（またはシリアル番号）を入力してカードを有効化します</p>
     </div>
     
     {% if result %}
@@ -420,10 +420,10 @@
             <div class="input-method">
                 <label class="method-label">
                     <span class="material-icons" style="vertical-align: middle; margin-right: 5px;">edit</span>
-                    シリアル番号を入力
+                    4桁コードを入力
                 </label>
                 <div class="serial-input-group">
-                    <input type="text" name="serial_number" class="serial-input" placeholder="シリアル番号を入力してください" autofocus>
+                    <input type="text" name="card_input" class="serial-input" placeholder="4桁コード（またはシリアル番号）" autofocus>
                     <button type="submit" class="btn-activate">
                         <span class="material-icons">check_circle</span>
                         有効化
@@ -540,7 +540,7 @@
         closeQRScanner();
         
         const form = document.querySelector('form');
-        const input = form.querySelector('input[name="serial_number"]');
+        const input = form.querySelector('input[name="card_input"]');
         input.value = serialNumber;
         form.submit();
     }

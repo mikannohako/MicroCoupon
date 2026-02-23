@@ -2,7 +2,9 @@ from django.db import models
 from django.utils import timezone
 from django.core.validators import MinValueValidator
 from django.contrib.auth import get_user_model
+from django.db import transaction as db_transaction
 import uuid
+import secrets
 
 User = get_user_model()
 
@@ -90,6 +92,72 @@ class Card(models.Model):
             self.used_at = timezone.now()
         self.is_locked = False
         self.save(update_fields=['balance', 'status', 'used_at', 'is_locked'])
+
+    def issue_temporary_code(self, valid_minutes=5):
+        """このカード用の4桁一時コードを発行する（既存未使用コードは破棄）"""
+        return TemporaryCardCode.issue_for_card(self, valid_minutes=valid_minutes)
+
+    @staticmethod
+    def resolve_identifier(identifier, consume_temp_code=False):
+        """シリアル番号または4桁一時コードからカードを解決する。"""
+        token = (identifier or '').strip()
+        if not token:
+            return None
+
+        try:
+            return Card.objects.get(serial_number=token)
+        except Card.DoesNotExist:
+            temp_code = TemporaryCardCode.get_valid_code(token)
+            if not temp_code:
+                return None
+            card = temp_code.card
+            if consume_temp_code:
+                temp_code.delete()
+            return card
+
+
+class TemporaryCardCode(models.Model):
+    """手入力用の4桁一時コード"""
+    card = models.ForeignKey(Card, on_delete=models.CASCADE, related_name='temporary_codes', verbose_name='カード')
+    code = models.CharField(max_length=4, db_index=True, verbose_name='一時コード')
+    expires_at = models.DateTimeField(db_index=True, verbose_name='有効期限')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='作成日時')
+
+    class Meta:
+        verbose_name = 'カード一時コード'
+        verbose_name_plural = 'カード一時コード'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.code} ({self.card.serial_number})"
+
+    @classmethod
+    def get_valid_code(cls, code):
+        now = timezone.now()
+        return cls.objects.select_related('card').filter(
+            code=code,
+            expires_at__gt=now,
+        ).first()
+
+    @classmethod
+    def issue_for_card(cls, card, valid_minutes=5):
+        """カードに対して未使用コードを1つだけ有効化して返す。"""
+        now = timezone.now()
+        with db_transaction.atomic():
+            # 同一カードの有効コードは常に1つだけにする
+            cls.objects.filter(card=card, expires_at__gt=now).delete()
+
+            for _ in range(30):
+                code = f"{secrets.randbelow(10000):04d}"
+                exists = cls.objects.filter(code=code, expires_at__gt=now).exists()
+                if not exists:
+                    return cls.objects.create(
+                        card=card,
+                        code=code,
+                        expires_at=now + timezone.timedelta(minutes=valid_minutes),
+                    )
+
+        raise Exception('一時コードの発行に失敗しました')
 
 
 class ActivityLog(models.Model):

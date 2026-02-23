@@ -173,6 +173,20 @@
         .lookup-button .material-icons {
             font-size: 20px;
         }
+
+        .error-box {
+            background: #fff5f5;
+            border: 1px solid #fed7d7;
+            color: #c53030;
+            border-radius: 10px;
+            padding: 12px 14px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
         
         .info-box {
             background: #f7fafc;
@@ -348,6 +362,13 @@
         </div>
         
         <div class="lookup-body">
+            {% if lookup_error %}
+            <div class="error-box">
+                <span class="material-icons" style="font-size: 20px;">error</span>
+                <span>{{ lookup_error }}</span>
+            </div>
+            {% endif %}
+
             <!-- QRコードスキャン -->
             <div class="method-section">
                 <div class="method-title">
@@ -378,6 +399,7 @@
                             id="serialNumberInput"
                             class="serial-input" 
                             placeholder="シリアル番号を入力" 
+                            value="{{ entered_serial|default:'' }}"
                             required
                         >
                         <button type="submit" class="lookup-button">

@@ -120,7 +120,7 @@
             </button>
             <button class="btn-checkout" style="background: #48bb78; margin-top: 10px;" id="manualInputBtn" onclick="openManualInput()" disabled>
                 <span class="material-icons">keyboard</span>
-                <span>シリアル番号を入力</span>
+                <span>4桁コードを入力</span>
             </button>
         </div>
     </div>
@@ -157,11 +157,11 @@
     <div class="modal" id="manualModal">
         <div class="modal-content">
             <div class="scanner-header">
-                <h2>シリアル番号を入力</h2>
-                <p>カードのシリアル番号を入力してください</p>
+                <h2>4桁コードを入力</h2>
+                <p>カード画面で発行した4桁コード（またはシリアル番号）を入力してください</p>
             </div>
             <div style="margin: 20px 0;">
-                <input type="text" id="serialNumberInput" placeholder="シリアル番号" style="width: 100%; padding: 15px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 16px;">
+                <input type="text" id="serialNumberInput" placeholder="4桁コード" style="width: 100%; padding: 15px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 16px;">
             </div>
             <div class="modal-actions">
                 <button class="btn-modal btn-cancel" onclick="closeManualInput()">キャンセル</button>
@@ -511,7 +511,7 @@
         function submitManualInput() {
             const serialNumber = document.getElementById('serialNumberInput').value.trim();
             if (!serialNumber) {
-                showErrorPopup('シリアル番号を入力してください');
+                showErrorPopup('4桁コードを入力してください');
                 return;
             }
             closeManualInput();
@@ -549,7 +549,7 @@
                     'X-CSRFToken': '{{ csrf_token }}'
                 },
                 body: JSON.stringify({
-                    serial_number: serialNumber,
+                    card_input: serialNumber,
                     items: cart
                 })
             })
