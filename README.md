@@ -126,11 +126,22 @@ BASIC_AUTH_FILE_HOST=/home/deploy/.htpasswd
 ### Linux向けワンコマンド初期セットアップ
 
 リポジトリをcloneした直後に、以下を実行すると初期設定を一括実行できます。
+初期設定は対話型で行われるため簡単に設定できます。
 
 ```bash
 chmod +x setup.sh
 ./setup.sh
 ```
+
+本番環境の推奨設定：
+
+```env
+DEBUG=False
+SECRET_KEY=<長くランダムな文字列>
+DOMAIN_NAME=<実際のドメイン名>
+BASE_URL=https://<実際のドメイン名>
+```
+※セットアップスクリプトを利用した場合`BASE_URL`と`SECRET_KEY`は自動で設定されます。
 
 このスクリプトが実施する内容:
 - `.env` 未作成時に `.env.template` から生成（`SECRET_KEY` 自動生成）
@@ -147,15 +158,6 @@ chmod +x setup.sh
 
 初回実行時に変更したい場合:
 
-```bash
-DJANGO_ADMIN_USERNAME=owner DJANGO_ADMIN_PASSWORD='strong-password' ./setup.sh
-```
-
-Basic認証のユーザー/パスワードを変更したい場合:
-
-```bash
-BASIC_AUTH_USER=admin BASIC_AUTH_PASS='strong-basic-pass' ./setup.sh
-```
 
 同名コンテナの自動削除を無効化したい場合:
 
@@ -169,29 +171,30 @@ git clone <repository-url>
 cd MicroCoupon
 ```
 
-2. **Docker Composeで起動**:
+1. **Docker Composeで起動**:
 ```bash
 docker compose up -d
 ```
 
-3. **データベースのマイグレーション**:
+1. **データベースのマイグレーション**:
 ```bash
 docker compose exec django python manage.py migrate
 ```
 
-4. **管理者ユーザーの作成**:
+1. **管理者ユーザーの作成**:
 ```bash
 docker compose exec django python manage.py createsuperuser
 ```
 
-5. **静的ファイルの収集**:
+1. **静的ファイルの収集**:
 ```bash
 docker compose exec django python manage.py collectstatic --noinput
 ```
 
-6. **アクセス**:
+1. **アクセス**:
 - アプリケーション: http://localhost:8080
 - 管理画面: http://localhost:8080/admin
+※.envファイルの設定により変動します。
 
 ## VPS デプロイメント
 
@@ -222,15 +225,6 @@ docker compose exec nginx cat /etc/nginx/.htpasswd
 
 ### 本番環境設定
 
-本番環境では以下を変更してください：
-
-```env
-DEBUG=False
-SECRET_KEY=<長くランダムな文字列>
-DOMAIN_NAME=<実際のドメイン名>
-BASE_URL=https://<実際のドメイン名>
-```
-
 ## 開発
 
 ### マイグレーションの作成と適用
@@ -255,10 +249,6 @@ docker compose logs -f nginx
 docker compose logs -f db
 ```
 
-## ライセンス
-
-このプロジェクトはMITライセンスの下でライセンスされています。詳細は[LICENSE](LICENSE)ファイルをご確認ください。
-
 ## コントリビューション
 
 バグ報告や機能リクエストはIssuesにてお願いします。  
@@ -267,3 +257,9 @@ docker compose logs -f db
 ## サポート
 
 問題が発生した場合は、[ERROR_PAGES.md](ERROR_PAGES.md)を参照してください。
+
+## ライセンス・著作権
+
+このプロジェクトはMITライセンスの下で公開されています。詳細は[LICENSE](LICENSE)ファイルをご確認ください。
+
+&copy; 2026 [あなたの名前] All Rights Reserved.
