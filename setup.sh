@@ -31,9 +31,9 @@ pick_compose_cmd() {
 
 generate_secret_key() {
     python3 - <<'PY'
-    import secrets
-    alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*(-_=+)"
-    print("".join(secrets.choice(alphabet) for _ in range(50)))
+import secrets
+alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*(-_=+)"
+print("".join(secrets.choice(alphabet) for _ in range(50)))
 PY
 }
 
@@ -80,6 +80,59 @@ prompt_user_input() {
     fi
 }
 
+prompt_password_with_confirm() {
+    local prompt="$1"
+    local default="$2"
+    local password1 password2
+
+    # If non-interactive or default is being used, return default
+    if ! [[ -t 0 ]]; then
+        echo "$default"
+        return
+    fi
+
+    while true; do
+        # First password prompt
+        printf "[setup] %s [%s]: " "$prompt" "$default" >&2
+        if read -rs -t 60 password1 2>/dev/null; then
+            echo "" >&2
+        else
+            echo "" >&2
+            echo "$default"
+            return
+        fi
+
+        # Use default if empty
+        if [[ -z "$password1" ]]; then
+            password1="$default"
+        fi
+
+        # Confirm password prompt
+        printf "[setup] %s (confirm) [%s]: " "$prompt" "$default" >&2
+        if read -rs -t 60 password2 2>/dev/null; then
+            echo "" >&2
+        else
+            echo "" >&2
+            echo "$default"
+            return
+        fi
+
+        # Use default if empty
+        if [[ -z "$password2" ]]; then
+            password2="$default"
+        fi
+
+        # Check if passwords match
+        if [[ "$password1" == "$password2" ]]; then
+            echo "$password1"
+            return
+        else
+            log "ERROR: Passwords do not match. Please try again."
+            echo "" >&2
+        fi
+    done
+}
+
 setup_env_file() {
     local env_file="$PROJECT_ROOT/.env"
     local env_template="$PROJECT_ROOT/.env.template"
@@ -98,7 +151,7 @@ setup_env_file() {
     if [[ -z "${DJANGO_ADMIN_USERNAME:-}" ]]; then
         local django_user django_pass django_email
         django_user=$(prompt_user_input "Username" "admin")
-        django_pass=$(prompt_user_input "Password" "admin1234")
+        django_pass=$(prompt_password_with_confirm "Password" "admin1234")
         django_email=$(prompt_user_input "Email" "admin@example.com")
         
         export DJANGO_ADMIN_USERNAME="$django_user"
@@ -114,7 +167,7 @@ setup_env_file() {
     if [[ -z "${BASIC_AUTH_USER:-}" ]]; then
         local basic_user basic_pass
         basic_user=$(prompt_user_input "Username (/admin)" "admin")
-        basic_pass=$(prompt_user_input "Password (/admin)" "admin1234")
+        basic_pass=$(prompt_password_with_confirm "Password (/admin)" "admin1234")
         
         export BASIC_AUTH_USER="$basic_user"
         export BASIC_AUTH_PASS="$basic_pass"
