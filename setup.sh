@@ -220,11 +220,6 @@ try:
     else:
         base_url = f'http://{domain_name}'
     
-    # Debug output
-    print(f"[setup] DEBUG: domain_name='{domain_name}'", file=sys.stderr)
-    print(f"[setup] DEBUG: base_url='{base_url}'", file=sys.stderr)
-    print(f"[setup] DEBUG: secret_len={len(secret)}", file=sys.stderr)
-    
     # Replace key=value lines (handles existing values correctly)
     # Uses regex to match "KEY=anything" and replace with "KEY=newvalue"
     content = re.sub(r'^SECRET_KEY=.*$', f'SECRET_KEY={secret}', content, flags=re.MULTILINE)
@@ -363,6 +358,87 @@ main() {
     require_cmd python3
     pick_compose_cmd
 
+check_prerequisites() {
+    log ""
+    log "========================================================"
+    log "Checking prerequisites..."
+    log "========================================================"
+    
+    local all_ok=true
+    
+    # Check Docker installation
+    log ""
+    log "Checking Docker..."
+    if ! command -v docker >/dev/null 2>&1; then
+        log "  ✗ Docker is not installed"
+        all_ok=false
+    else
+        log "  ✓ Docker is installed"
+    fi
+    
+    # Check Docker Daemon
+    log "Checking Docker Daemon..."
+    if ! docker info >/dev/null 2>&1; then
+        log "  ✗ Docker Daemon is not running"
+        all_ok=false
+    else
+        log "  ✓ Docker Daemon is running"
+    fi
+    
+    # Check Python 3
+    log "Checking Python 3..."
+    if ! command -v python3 >/dev/null 2>&1; then
+        log "  ✗ Python 3 is not installed"
+        all_ok=false
+    else
+        local python_version=$(python3 --version 2>&1 | awk '{print $2}')
+        log "  ✓ Python 3 is installed ($python_version)"
+    fi
+    
+    # Check docker compose/docker-compose
+    log "Checking docker compose..."
+    if docker compose version >/dev/null 2>&1; then
+        local compose_version=$(docker compose version --short 2>&1)
+        log "  ✓ docker compose is available ($compose_version)"
+    elif command -v docker-compose >/dev/null 2>&1; then
+        local compose_version=$(docker-compose --version 2>&1 | awk '{print $3}')
+        log "  ✓ docker-compose is available ($compose_version)"
+    else
+        log "  ✗ Neither 'docker compose' nor 'docker-compose' is available"
+        all_ok=false
+    fi
+    
+    # Check required files
+    log "Checking required files..."
+    if [[ ! -f "$PROJECT_ROOT/.env.template" ]]; then
+        log "  ✗ .env.template not found"
+        all_ok=false
+    else
+        log "  ✓ .env.template found"
+    fi
+    
+    if [[ ! -f "$PROJECT_ROOT/docker-compose.yml" ]]; then
+        log "  ✗ docker-compose.yml not found"
+        all_ok=false
+    else
+        log "  ✓ docker-compose.yml found"
+    fi
+    
+    log ""
+    if [[ "$all_ok" == "false" ]]; then
+        log "========================================================"
+        log "Prerequisites check failed!"
+        log "========================================================"
+        fail "Please install and configure missing prerequisites"
+    fi
+    
+    log "========================================================"
+    log "✓ All prerequisites are satisfied"
+    log "========================================================"
+}
+
+    # Check prerequisites before starting setup
+    check_prerequisites
     if ! docker info >/dev/null 2>&1; then
         fail "Docker daemon is not running"
     fi
