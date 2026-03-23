@@ -135,6 +135,7 @@ chmod +x setup.sh
 このスクリプトが実施する内容:
 - `.env` 未作成時に `.env.template` から生成（`SECRET_KEY` 自動生成）
 - Basic認証用 `.htpasswd` の作成
+- 既存の同名コンテナ（`microcoupon-django` / `microcoupon-postgres` / `microcoupon-nginx`）があれば自動削除して衝突回避
 - Dockerコンテナ起動（build含む）
 - DBマイグレーション
 - 静的ファイル収集
@@ -154,6 +155,12 @@ Basic認証のユーザー/パスワードを変更したい場合:
 
 ```bash
 BASIC_AUTH_USER=admin BASIC_AUTH_PASS='strong-basic-pass' ./setup.sh
+```
+
+同名コンテナの自動削除を無効化したい場合:
+
+```bash
+AUTO_REMOVE_CONFLICTING_CONTAINERS=0 ./setup.sh
 ```
 
 1. **リポジトリのクローン**:

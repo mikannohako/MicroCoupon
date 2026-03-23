@@ -84,6 +84,26 @@ setup_basic_auth_file() {
   chmod 600 "$htpasswd_path"
 }
 
+remove_conflicting_named_containers() {
+  local auto_remove="${AUTO_REMOVE_CONFLICTING_CONTAINERS:-1}"
+  local names=(
+    "microcoupon-django"
+    "microcoupon-postgres"
+    "microcoupon-nginx"
+  )
+
+  for name in "${names[@]}"; do
+    if docker ps -a --format '{{.Names}}' | grep -Fxq "$name"; then
+      if [[ "$auto_remove" == "1" ]]; then
+        log "Removing conflicting container: $name"
+        docker rm -f "$name" >/dev/null
+      else
+        fail "Container name conflict detected: $name (set AUTO_REMOVE_CONFLICTING_CONTAINERS=1 to auto-fix)"
+      fi
+    fi
+  done
+}
+
 wait_for_db() {
   log "Waiting for database to be ready"
   local retries=30
@@ -163,6 +183,7 @@ main() {
 
   setup_env_file
   setup_basic_auth_file
+  remove_conflicting_named_containers
 
   log "Starting containers"
   "${COMPOSE[@]}" up -d --build
@@ -184,6 +205,8 @@ Tips:
   DJANGO_ADMIN_USERNAME=owner DJANGO_ADMIN_PASSWORD='strong-password' ./setup.sh
 - Override basic auth:
   BASIC_AUTH_USER=admin BASIC_AUTH_PASS='strong-basic-pass' ./setup.sh
+- Disable auto-removal of conflicting container names:
+  AUTO_REMOVE_CONFLICTING_CONTAINERS=0 ./setup.sh
 EOF
 }
 
