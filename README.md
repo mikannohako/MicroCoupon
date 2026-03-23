@@ -123,6 +123,39 @@ BASIC_AUTH_FILE_HOST=/home/deploy/.htpasswd
 
 ### ローカル開発環境での起動
 
+### Linux向けワンコマンド初期セットアップ
+
+リポジトリをcloneした直後に、以下を実行すると初期設定を一括実行できます。
+
+```bash
+chmod +x setup.sh
+./setup.sh
+```
+
+このスクリプトが実施する内容:
+- `.env` 未作成時に `.env.template` から生成（`SECRET_KEY` 自動生成）
+- Basic認証用 `.htpasswd` の作成
+- Dockerコンテナ起動（build含む）
+- DBマイグレーション
+- 静的ファイル収集
+- Django管理者ユーザーの作成/更新（`user_type=admin`）
+
+管理者ユーザーの既定値:
+- ユーザー名: `admin`
+- パスワード: `admin1234`
+
+初回実行時に変更したい場合:
+
+```bash
+DJANGO_ADMIN_USERNAME=owner DJANGO_ADMIN_PASSWORD='strong-password' ./setup.sh
+```
+
+Basic認証のユーザー/パスワードを変更したい場合:
+
+```bash
+BASIC_AUTH_USER=admin BASIC_AUTH_PASS='strong-basic-pass' ./setup.sh
+```
+
 1. **リポジトリのクローン**:
 ```bash
 git clone <repository-url>
