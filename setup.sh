@@ -45,16 +45,38 @@ prompt_user_input() {
     # Display prompt with [setup] prefix and default in brackets
     printf "[setup] %s [%s]: " "$prompt" "$default" >&2
 
+    # Check if this is a password field (contains "Password" or "password")
+    local is_password=0
+    if [[ "$prompt" =~ [Pp]assword ]]; then
+        is_password=1
+    fi
+
     # Read from stdin with timeout (non-blocking for pipe inputs)
-    if read -r -t 60 input 2>/dev/null; then
-        if [[ -z "$input" ]]; then
-            echo "$default"
+    if [[ $is_password -eq 1 ]]; then
+        # Silent input for passwords
+        if read -rs -t 60 input 2>/dev/null; then
+            echo "" >&2  # Add newline after silent input
+            if [[ -z "$input" ]]; then
+                echo "$default"
+            else
+                echo "$input"
+            fi
         else
-            echo "$input"
+            echo "" >&2  # Add newline on timeout
+            echo "$default"
         fi
     else
-        # Timeout or non-interactive: use default
-        echo "$default"
+        # Normal input for other fields
+        if read -r -t 60 input 2>/dev/null; then
+            if [[ -z "$input" ]]; then
+                echo "$default"
+            else
+                echo "$input"
+            fi
+        else
+            # Timeout or non-interactive: use default
+            echo "$default"
+        fi
     fi
 }
 
@@ -131,6 +153,8 @@ domain_name = "$domain_name"
 debug_mode = "$debug_mode"
 
 try:
+    import re
+    
     with open(template_file, 'r', encoding='utf-8') as f:
         content = f.read()
     
@@ -143,12 +167,13 @@ try:
     else:
         base_url = f'http://{domain_name}'
     
-    # Replace placeholders
-    content = content.replace('SECRET_KEY=', f'SECRET_KEY={secret}')
-    content = content.replace('BASIC_AUTH_FILE_HOST=', f'BASIC_AUTH_FILE_HOST={htpasswd_path}')
-    content = content.replace('DEBUG=', f'DEBUG={debug_mode}')
-    content = content.replace('DOMAIN_NAME=', f'DOMAIN_NAME={domain_name}')
-    content = content.replace('BASE_URL=', f'BASE_URL={base_url}')
+    # Replace key=value lines (handles existing values correctly)
+    # Uses regex to match "KEY=anything" and replace with "KEY=newvalue"
+    content = re.sub(r'^SECRET_KEY=.*$', f'SECRET_KEY={secret}', content, flags=re.MULTILINE)
+    content = re.sub(r'^DEBUG=.*$', f'DEBUG={debug_mode}', content, flags=re.MULTILINE)
+    content = re.sub(r'^DOMAIN_NAME=.*$', f'DOMAIN_NAME={domain_name}', content, flags=re.MULTILINE)
+    content = re.sub(r'^BASE_URL=.*$', f'BASE_URL={base_url}', content, flags=re.MULTILINE)
+    content = re.sub(r'^BASIC_AUTH_FILE_HOST=.*$', f'BASIC_AUTH_FILE_HOST={htpasswd_path}', content, flags=re.MULTILINE)
     
     # Write with LF only (no CRLF)
     with open(output_file, 'w', encoding='utf-8', newline='\n') as f:
@@ -323,12 +348,12 @@ main() {
     log ""
     log "Django Admin:"
     log "  Username: ${DJANGO_ADMIN_USERNAME:-admin}"
-    log "  Password: ${DJANGO_ADMIN_PASSWORD:-admin1234}"
+    log "  Password: **********"
     log "  Email: ${DJANGO_ADMIN_EMAIL:-admin@example.com}"
     log ""
     log "Basic Auth (/admin path):"
     log "  Username: ${BASIC_AUTH_USER:-admin}"
-    log "  Password: ${BASIC_AUTH_PASS:-admin1234}"
+    log "  Password: **********"
     log ""
 }
 
