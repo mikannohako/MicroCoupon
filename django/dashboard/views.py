@@ -6,6 +6,7 @@ from django.conf import settings
 from django.http import HttpResponse
 from django.core.paginator import Paginator
 from django.utils import timezone
+from django.db.models.deletion import ProtectedError
 from microcoupon.models import Card, ActivityLog, TemporaryCardCode
 from microcoupon.utils import log_activity
 from products.models import Product
@@ -383,25 +384,25 @@ def card_activate(request):
 
 @admin_required
 def sales_list(request):
-    """売上一覧（教室ごと）"""
+    """売上一覧（店舗ごと）"""
     from django.db.models import Count, Q
     
-    # 全ての教室を取得
+    # 全ての店舗を取得
     rooms = Room.objects.filter(is_active=True).order_by('display_order', 'name')
     
-    # 各教室の売上を集計
+    # 各店舗の売上を集計
     room_stats = []
     total_sales = 0
     total_count = 0
     
     for room in rooms:
-        # この教室の商品が含まれる取引を取得
+        # この店舗の商品が含まれる取引を取得
         room_transactions = Transaction.objects.filter(
             status='completed',
             items__product__room=room
         ).distinct()
         
-        # 売上額を計算（この教室の商品分のみ）
+        # 売上額を計算（この店舗の商品分のみ）
         room_total = 0
         for transaction in room_transactions:
             for item in transaction.items.filter(product__room=room):
@@ -427,11 +428,11 @@ def sales_list(request):
 
 @admin_required
 def sales_detail(request, transaction_id):
-    """教室ごとの売上詳細"""
+    """店舗ごとの売上詳細"""
     # transaction_idをroom_idとして扱う
     room = get_object_or_404(Room, id=transaction_id)
     
-    # この教室の商品が含まれる取引を取得
+    # この店舗の商品が含まれる取引を取得
     transactions = Transaction.objects.filter(
         status='completed',
         items__product__room=room
@@ -442,7 +443,7 @@ def sales_detail(request, transaction_id):
     if date_filter:
         transactions = transactions.filter(created_at__date=date_filter)
     
-    # 統計（この教室の商品分のみ）
+    # 統計（この店舗の商品分のみ）
     total_sales = 0
     for transaction in transactions:
         for item in transaction.items.filter(product__room=room):
@@ -708,6 +709,134 @@ def user_delete(request, user_id):
         return redirect('dashboard:user_list')
     
     return render(request, 'dashboard/user_delete_confirm.html', {'user': user})
+
+
+@admin_required
+def store_list(request):
+    """店舗一覧"""
+    stores = Room.objects.all().order_by('display_order', 'name')
+    context = {'stores': stores}
+    return render(request, 'dashboard/store_list.html', context)
+
+
+@admin_required
+def store_create(request):
+    """店舗作成"""
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        description = request.POST.get('description', '').strip()
+        display_order = request.POST.get('display_order', '0')
+        is_active = request.POST.get('is_active') == 'on'
+
+        if not name:
+            messages.error(request, '店舗名を入力してください')
+            return render(request, 'dashboard/store_create.html')
+
+        if Room.objects.filter(name=name).exists():
+            messages.error(request, '同じ店舗名が既に存在します')
+            return render(request, 'dashboard/store_create.html')
+
+        try:
+            store = Room.objects.create(
+                name=name,
+                description=description,
+                display_order=int(display_order or 0),
+                is_active=is_active,
+            )
+            log_activity(
+                request.user,
+                'user_create',
+                f'店舗「{store.name}」を作成',
+                'Room',
+                str(store.id),
+                request,
+            )
+            messages.success(request, f'店舗「{store.name}」を作成しました')
+            return redirect('dashboard:store_list')
+        except ValueError:
+            messages.error(request, '表示順は数値で入力してください')
+        except Exception as e:
+            messages.error(request, f'エラー: {str(e)}')
+
+    return render(request, 'dashboard/store_create.html')
+
+
+@admin_required
+def store_edit(request, store_id):
+    """店舗編集"""
+    store = get_object_or_404(Room, id=store_id)
+
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        description = request.POST.get('description', '').strip()
+        display_order = request.POST.get('display_order', '0')
+        is_active = request.POST.get('is_active') == 'on'
+
+        if not name:
+            messages.error(request, '店舗名を入力してください')
+            return render(request, 'dashboard/store_edit.html', {'store': store})
+
+        if Room.objects.filter(name=name).exclude(id=store.id).exists():
+            messages.error(request, '同じ店舗名が既に存在します')
+            return render(request, 'dashboard/store_edit.html', {'store': store})
+
+        try:
+            old_name = store.name
+            store.name = name
+            store.description = description
+            store.display_order = int(display_order or 0)
+            store.is_active = is_active
+            store.save()
+
+            log_activity(
+                request.user,
+                'user_edit',
+                f'店舗「{old_name}」を編集',
+                'Room',
+                str(store.id),
+                request,
+            )
+            messages.success(request, '店舗情報を更新しました')
+            return redirect('dashboard:store_list')
+        except ValueError:
+            messages.error(request, '表示順は数値で入力してください')
+        except Exception as e:
+            messages.error(request, f'エラー: {str(e)}')
+
+    return render(request, 'dashboard/store_edit.html', {'store': store})
+
+
+@admin_required
+def store_delete(request, store_id):
+    """店舗削除"""
+    store = get_object_or_404(Room, id=store_id)
+
+    if request.method == 'POST':
+        store_name = store.name
+        try:
+            store.delete()
+            log_activity(
+                request.user,
+                'user_delete',
+                f'店舗「{store_name}」を削除',
+                'Room',
+                str(store_id),
+                request,
+            )
+            messages.success(request, f'店舗「{store_name}」を削除しました')
+            return redirect('dashboard:store_list')
+        except ProtectedError:
+            messages.error(request, 'この店舗に紐づく商品があるため削除できません')
+            return redirect('dashboard:store_list')
+
+    users_count = User.objects.filter(room=store).count()
+    products_count = Product.objects.filter(room=store).count()
+    context = {
+        'store': store,
+        'users_count': users_count,
+        'products_count': products_count,
+    }
+    return render(request, 'dashboard/store_delete_confirm.html', context)
 
 
 @admin_required

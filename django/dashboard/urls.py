@@ -33,6 +33,12 @@ urlpatterns = [
     path('users/create/', views.user_create, name='user_create'),
     path('users/<int:user_id>/edit/', views.user_edit, name='user_edit'),
     path('users/<int:user_id>/delete/', views.user_delete, name='user_delete'),
+
+    # 店舗設定
+    path('stores/', views.store_list, name='store_list'),
+    path('stores/create/', views.store_create, name='store_create'),
+    path('stores/<int:store_id>/edit/', views.store_edit, name='store_edit'),
+    path('stores/<int:store_id>/delete/', views.store_delete, name='store_delete'),
     
     # アクティビティログ
     path('logs/', views.activity_log_list, name='activity_log_list'),

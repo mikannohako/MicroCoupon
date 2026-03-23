@@ -1,9 +1,9 @@
 {% extends 'dashboard/base.html' %}
 {% load static %}
 
-{% block title %}ユーザー削除確認 - MicroCoupon 管理画面{% endblock %}
+{% block title %}店舗削除確認 - MicroCoupon 管理画面{% endblock %}
 
-{% block page_title %}ユーザー削除確認{% endblock %}
+{% block page_title %}店舗削除確認{% endblock %}
 
 {% block content %}
 <div class="container">
@@ -13,35 +13,27 @@
                 <span class="material-icons">warning</span>
                 <span>確認が必要です</span>
             </div>
-            <p>本当にこのユーザーを削除しますか？この操作は取り消せません。</p>
+            <p>本当にこの店舗を削除しますか？この操作は取り消せません。</p>
         </div>
 
-        <div class="user-info">
-            <h3>削除予定のユーザー</h3>
+        <div class="store-info">
+            <h3>削除予定の店舗</h3>
             <table class="info-table">
                 <tr>
-                    <th>ユーザー名</th>
-                    <td><strong>{{ user.username }}</strong></td>
+                    <th>店舗名</th>
+                    <td><strong>{{ store.name }}</strong></td>
                 </tr>
                 <tr>
-                    <th>氏名</th>
-                    <td>{{ user.get_full_name }}</td>
+                    <th>説明</th>
+                    <td>{{ store.description|default:'-' }}</td>
                 </tr>
                 <tr>
-                    <th>メール</th>
-                    <td>{{ user.email }}</td>
+                    <th>所属ユーザー</th>
+                    <td>{{ users_count }} 名</td>
                 </tr>
                 <tr>
-                    <th>ユーザータイプ</th>
-                    <td>{{ user.get_user_type_display }}</td>
-                </tr>
-                <tr>
-                    <th>所属店舗</th>
-                    <td>{% if user.room %}{{ user.room.name }}{% else %}<span class="text-muted">-</span>{% endif %}</td>
-                </tr>
-                <tr>
-                    <th>登録日時</th>
-                    <td>{{ user.date_joined|date:"Y年m月d日 H:i" }}</td>
+                    <th>紐づく商品</th>
+                    <td>{{ products_count }} 件</td>
                 </tr>
             </table>
         </div>
@@ -52,7 +44,7 @@
                 <span class="material-icons">delete</span>
                 削除する
             </button>
-            <a href="{% url 'dashboard:user_list' %}" class="btn btn-secondary">
+            <a href="{% url 'dashboard:store_list' %}" class="btn btn-secondary">
                 <span class="material-icons">cancel</span>
                 キャンセル
             </a>
@@ -104,7 +96,7 @@
         font-size: 14px;
     }
 
-    .user-info {
+    .store-info {
         background: #f7fafc;
         border: 1px solid #e2e8f0;
         border-radius: 6px;
@@ -112,7 +104,7 @@
         margin-bottom: 30px;
     }
 
-    .user-info h3 {
+    .store-info h3 {
         margin: 0 0 15px 0;
         color: #2d3748;
         font-size: 16px;
@@ -134,16 +126,12 @@
         padding-right: 15px;
         font-weight: 600;
         color: #2d3748;
-        width: 100px;
+        width: 120px;
     }
 
     .info-table td {
         padding: 10px 0;
         color: #4a5568;
-    }
-
-    .text-muted {
-        color: #a0aec0;
     }
 
     .form-actions {
@@ -189,20 +177,6 @@
 
     .btn span.material-icons {
         font-size: 18px;
-    }
-
-    @media (max-width: 600px) {
-        .confirm-container {
-            padding: 20px;
-        }
-
-        .form-actions {
-            flex-direction: column;
-        }
-
-        .btn {
-            flex: 1;
-        }
     }
 </style>
 {% endblock %}

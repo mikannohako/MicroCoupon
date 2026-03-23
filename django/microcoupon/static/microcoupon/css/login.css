@@ -26,10 +26,12 @@ body {
     font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     background: linear-gradient(135deg, #e9edf2 0%, #dbe2ea 100%);
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
     padding: 20px;
+    padding-bottom: 52px;
 }
 
 /* Login Container */
@@ -178,6 +180,18 @@ form {
 
 .btn-login:active {
     transform: translateY(0);
+}
+
+.login-copyright {
+    position: fixed;
+    left: 50%;
+    bottom: 16px;
+    transform: translateX(-50%);
+    margin-top: 0;
+    width: max-content;
+    text-align: center;
+    color: #c5ccd6;
+    font-size: 10px;
 }
 
 /* Responsive Design */

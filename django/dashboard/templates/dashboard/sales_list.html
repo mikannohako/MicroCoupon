@@ -5,7 +5,7 @@
 {% block content %}
 <div class="container">
     <div class="header-section">
-        <h1>売上管理（教室別）</h1>
+        <h1>売上管理（店舗別）</h1>
     </div>
     
     <!-- 統計サマリー -->
@@ -20,12 +20,12 @@
         </div>
     </div>
     
-    <!-- 教室一覧 -->
+    <!-- 店舗一覧 -->
     <div class="table-container">
         <table class="data-table">
             <thead>
                 <tr>
-                    <th>教室名</th>
+                    <th>店舗名</th>
                     <th>総売上</th>
                     <th>取引件数</th>
                     <th>操作</th>
@@ -43,7 +43,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="4" style="text-align: center; padding: 40px;">教室データがありません</td>
+                    <td colspan="4" style="text-align: center; padding: 40px;">店舗データがありません</td>
                 </tr>
                 {% endfor %}
             </tbody>

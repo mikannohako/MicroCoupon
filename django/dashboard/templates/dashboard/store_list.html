@@ -1,59 +1,53 @@
 {% extends 'dashboard/base.html' %}
 {% load static %}
 
-{% block title %}ユーザー管理 - MicroCoupon 管理画面{% endblock %}
+{% block title %}店舗設定 - MicroCoupon 管理画面{% endblock %}
 
-{% block page_title %}ユーザー管理{% endblock %}
+{% block page_title %}店舗設定{% endblock %}
 
 {% block content %}
 <div class="container">
     <div class="page-header">
-        <h2>ユーザー一覧</h2>
-        <a href="{% url 'dashboard:user_create' %}" class="btn btn-primary">
-            <span class="material-icons">add</span>
-            新規ユーザー作成
+        <h2>店舗一覧</h2>
+        <a href="{% url 'dashboard:store_create' %}" class="btn btn-primary">
+            <span class="material-icons">add_business</span>
+            新規店舗作成
         </a>
     </div>
 
-    {% if users %}
+    {% if stores %}
     <div class="table-container">
         <table class="data-table">
             <thead>
                 <tr>
-                    <th>ユーザー名</th>
-                    <th>メール</th>
-                    <th>氏名</th>
-                    <th>ユーザータイプ</th>
-                    <th>所属店舗</th>
+                    <th>店舗名</th>
+                    <th>説明</th>
+                    <th>表示順</th>
+                    <th>状態</th>
                     <th>登録日時</th>
                     <th>操作</th>
                 </tr>
             </thead>
             <tbody>
-                {% for user in users %}
+                {% for store in stores %}
                 <tr>
-                    <td><strong>{{ user.username }}</strong></td>
-                    <td>{{ user.email }}</td>
-                    <td>{{ user.get_full_name }}</td>
+                    <td><strong>{{ store.name }}</strong></td>
+                    <td>{{ store.description|default:'-' }}</td>
+                    <td>{{ store.display_order }}</td>
                     <td>
-                        <span class="badge {% if user.user_type == 'admin' %}badge-danger{% else %}badge-info{% endif %}">
-                            {{ user.get_user_type_display }}
-                        </span>
-                    </td>
-                    <td>
-                        {% if user.room %}
-                            {{ user.room.name }}
+                        {% if store.is_active %}
+                            <span class="badge badge-success">有効</span>
                         {% else %}
-                            <span class="text-muted">-</span>
+                            <span class="badge badge-muted">無効</span>
                         {% endif %}
                     </td>
-                    <td>{{ user.date_joined|date:"Y年m月d日" }}</td>
+                    <td>{{ store.created_at|date:"Y年m月d日" }}</td>
                     <td>
                         <div class="action-buttons">
-                            <a href="{% url 'dashboard:user_edit' user.id %}" class="btn btn-sm btn-info">
+                            <a href="{% url 'dashboard:store_edit' store.id %}" class="btn btn-sm btn-info">
                                 <span class="material-icons">edit</span>
                             </a>
-                            <a href="{% url 'dashboard:user_delete' user.id %}" class="btn btn-sm btn-danger">
+                            <a href="{% url 'dashboard:store_delete' store.id %}" class="btn btn-sm btn-danger">
                                 <span class="material-icons">delete</span>
                             </a>
                         </div>
@@ -65,8 +59,8 @@
     </div>
     {% else %}
     <div class="alert alert-info">
-        ユーザーがまだ作成されていません。
-        <a href="{% url 'dashboard:user_create' %}">新規ユーザーを作成する</a>
+        店舗がまだ作成されていません。
+        <a href="{% url 'dashboard:store_create' %}">新規店舗を作成する</a>
     </div>
     {% endif %}
 </div>
@@ -162,7 +156,7 @@
         width: 100%;
         border-collapse: collapse;
         font-size: 14px;
-        min-width: 600px;
+        min-width: 680px;
     }
 
     .data-table thead {
@@ -197,18 +191,14 @@
         white-space: nowrap;
     }
 
-    .badge-danger {
-        background: #fed7d7;
-        color: #742a2a;
+    .badge-success {
+        background: #c6f6d5;
+        color: #22543d;
     }
 
-    .badge-info {
-        background: #bee3f8;
-        color: #2c5282;
-    }
-
-    .text-muted {
-        color: #a0aec0;
+    .badge-muted {
+        background: #edf2f7;
+        color: #4a5568;
     }
 
     .action-buttons {
@@ -233,53 +223,5 @@
         color: #22543d;
         font-weight: 600;
     }
-
-    /* モバイル対応 */
-    @media (max-width: 768px) {
-        .container {
-            padding: 12px;
-        }
-
-        .page-header {
-            flex-direction: column;
-            align-items: stretch;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-        }
-
-        .page-header h2 {
-            font-size: 20px;
-            margin-bottom: 10px;
-        }
-
-        .btn-primary {
-            width: 100%;
-            justify-content: center;
-        }
-
-        .data-table {
-            font-size: 12px;
-            min-width: 500px;
-        }
-
-        .data-table th,
-        .data-table td {
-            padding: 8px;
-        }
-
-        .action-buttons {
-            gap: 4px;
-        }
-
-        .btn-sm {
-            padding: 4px 8px;
-            font-size: 11px;
-        }
-
-        .btn-sm span.material-icons {
-            font-size: 14px;
-        }
-    }
-</style>
 </style>
 {% endblock %}

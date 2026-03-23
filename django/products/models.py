@@ -8,7 +8,7 @@ class Product(models.Model):
         'account.Room',
         on_delete=models.PROTECT,
         related_name='products',
-        verbose_name='教室',
+        verbose_name='店舗',
         null=True
     )
     name = models.CharField(max_length=200, verbose_name='品目')
