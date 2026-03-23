@@ -42,14 +42,11 @@ prompt_user_input() {
     local default="$2"
     local input
 
-    if [[ -n "$default" ]]; then
-        printf "%s [%s]: " "$prompt" "$default" >&2
-    else
-        printf "%s: " "$prompt" >&2
-    fi
+    # Display prompt with [setup] prefix and default in brackets
+    printf "[setup] %s [%s]: " "$prompt" "$default" >&2
 
     # Read from stdin with timeout (non-blocking for pipe inputs)
-    if read -r -t 10 input 2>/dev/null; then
+    if read -r -t 60 input 2>/dev/null; then
         if [[ -z "$input" ]]; then
             echo "$default"
         else
@@ -77,11 +74,10 @@ setup_env_file() {
     
     # Check if environment variables are already set
     if [[ -z "${DJANGO_ADMIN_USERNAME:-}" ]]; then
-        log "Enter Django admin credentials (or press Enter for defaults)"
         local django_user django_pass django_email
-        django_user=$(prompt_user_input "Django admin username" "admin")
-        django_pass=$(prompt_user_input "Django admin password" "admin1234")
-        django_email=$(prompt_user_input "Django admin email" "admin@example.com")
+        django_user=$(prompt_user_input "Username" "admin")
+        django_pass=$(prompt_user_input "Password" "admin1234")
+        django_email=$(prompt_user_input "Email" "admin@example.com")
         
         export DJANGO_ADMIN_USERNAME="$django_user"
         export DJANGO_ADMIN_PASSWORD="$django_pass"
@@ -94,10 +90,9 @@ setup_env_file() {
     log "=== Basic Auth Setup ==="
     
     if [[ -z "${BASIC_AUTH_USER:-}" ]]; then
-        log "Enter basic auth credentials (or press Enter for defaults)"
         local basic_user basic_pass
-        basic_user=$(prompt_user_input "Basic auth username (for /admin)" "admin")
-        basic_pass=$(prompt_user_input "Basic auth password" "admin1234")
+        basic_user=$(prompt_user_input "Username (/admin)" "admin")
+        basic_pass=$(prompt_user_input "Password (/admin)" "admin1234")
         
         export BASIC_AUTH_USER="$basic_user"
         export BASIC_AUTH_PASS="$basic_pass"
