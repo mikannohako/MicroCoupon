@@ -105,7 +105,13 @@ body {
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.sidebar-brand {
+    display: flex;
+    flex-direction: column;
 }
 
 .sidebar-header h2 {
@@ -113,6 +119,13 @@ body {
     font-weight: 600;
     color: white;
     letter-spacing: 0.5px;
+}
+
+.sidebar-subtitle {
+    margin-top: 2px;
+    font-size: 11px;
+    color: rgba(158, 158, 158, 0.72);
+    letter-spacing: 0.2px;
 }
 
 .close-btn {

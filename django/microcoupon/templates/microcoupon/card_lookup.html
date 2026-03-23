@@ -7,423 +7,81 @@
     <title>カード残高照会 - MicroCoupon</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Noto Sans JP', sans-serif;
-            background: linear-gradient(135deg, #eef2f7 0%, #e6edf5 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        
-        .lookup-container {
-            background: white;
-            border-radius: 24px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 600px;
-            width: 100%;
-            overflow: hidden;
-        }
-        
-        .lookup-header {
-            background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
-            color: white;
-            padding: 40px 30px;
-            text-align: center;
-        }
-        
-        .lookup-header h1 {
-            font-size: 36px;
-            font-weight: 700;
-            margin-bottom: 12px;
-        }
-        
-        .lookup-header p {
-            font-size: 16px;
-            opacity: 0.95;
-        }
-        
-        .lookup-body {
-            padding: 40px 30px;
-        }
-        
-        .method-section {
-            margin-bottom: 30px;
-        }
-        
-        .method-title {
-            font-size: 14px;
-            color: #718096;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .method-title .material-icons {
-            font-size: 20px;
-        }
-        
-        .qr-scan-button {
-            width: 100%;
-            padding: 20px;
-            background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
-            color: white;
-            border: none;
-            border-radius: 16px;
-            font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            transition: all 0.3s;
-            box-shadow: 0 4px 12px rgba(45, 55, 72, 0.25);
-        }
-        
-        .qr-scan-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(45, 55, 72, 0.35);
-        }
-        
-        .qr-scan-button .material-icons {
-            font-size: 32px;
-        }
-        
-        .divider {
-            display: flex;
-            align-items: center;
-            margin: 30px 0;
-            color: #a0aec0;
-            font-size: 14px;
-            font-weight: 500;
-        }
-        
-        .divider::before,
-        .divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: #e2e8f0;
-        }
-        
-        .divider span {
-            padding: 0 15px;
-        }
-        
-        .manual-input-section {
-            margin-bottom: 20px;
-        }
-        
-        .input-group {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .serial-input {
-            flex: 1;
-            padding: 16px 20px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 16px;
-            transition: all 0.3s;
-            font-family: 'Courier New', monospace;
-        }
-        
-        .serial-input:focus {
-            border-color: #667eea;
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-        
-        .lookup-button {
-            padding: 16px 32px;
-            background: #48bb78;
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            white-space: nowrap;
-        }
-        
-        .lookup-button:hover {
-            background: #38a169;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
-        }
-        
-        .lookup-button .material-icons {
-            font-size: 20px;
-        }
-
-        .error-box {
-            background: #fff5f5;
-            border: 1px solid #fed7d7;
-            color: #c53030;
-            border-radius: 10px;
-            padding: 12px 14px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .info-box {
-            background: #f7fafc;
-            border-left: 4px solid #667eea;
-            border-radius: 8px;
-            padding: 20px;
-            margin-top: 30px;
-        }
-        
-        .info-box h3 {
-            font-size: 16px;
-            font-weight: 700;
-            color: #2d3748;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .info-box h3 .material-icons {
-            font-size: 20px;
-            color: #667eea;
-        }
-        
-        .info-box ul {
-            list-style: none;
-            padding: 0;
-        }
-        
-        .info-box li {
-            padding: 6px 0;
-            color: #4a5568;
-            font-size: 14px;
-            display: flex;
-            align-items: flex-start;
-            gap: 8px;
-        }
-        
-        .info-box li::before {
-            content: '•';
-            color: #667eea;
-            font-weight: bold;
-            font-size: 18px;
-        }
-        
-        /* QRスキャナーモーダル */
-        .scanner-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.95);
-            z-index: 9999;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .scanner-modal.active {
-            display: flex;
-        }
-        
-        .scanner-content {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            max-width: 700px;
-            width: 95%;
-            max-height: 90vh;
-        }
-        
-        .scanner-header {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-        
-        .scanner-header h2 {
-            font-size: 24px;
-            font-weight: 700;
-            color: #2d3748;
-            margin-bottom: 10px;
-        }
-        
-        .scanner-header p {
-            color: #718096;
-            font-size: 15px;
-        }
-        
-        .scanner-container {
-            position: relative;
-            background: #000;
-            border-radius: 12px;
-            overflow: hidden;
-            margin-bottom: 20px;
-            max-width: 100%;
-        }
-        
-        #qr-reader {
-            width: 100%;
-            max-width: 100%;
-        }
-        
-        #qr-reader video {
-            width: 100% !important;
-            height: auto !important;
-            max-height: 400px !important;
-            object-fit: contain !important;
-            display: block;
-        }
-        
-        #qr-reader canvas {
-            width: 100% !important;
-            height: auto !important;
-            max-height: 400px !important;
-        }
-        
-        .scanner-actions {
-            display: flex;
-            gap: 12px;
-        }
-        
-        .btn-scanner {
-            flex: 1;
-            padding: 16px;
-            border: none;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .btn-cancel {
-            background: #e2e8f0;
-            color: #4a5568;
-        }
-        
-        .btn-cancel:hover {
-            background: #cbd5e0;
-        }
-        
-        @media (max-width: 600px) {
-            .lookup-header h1 {
-                font-size: 28px;
-            }
-            
-            .lookup-header p {
-                font-size: 14px;
-            }
-            
-            .lookup-body {
-                padding: 30px 20px;
-            }
-            
-            .input-group {
-                flex-direction: column;
-            }
-            
-            .lookup-button {
-                width: 100%;
-                justify-content: center;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'microcoupon/css/card_lookup.css' %}">
     <script src="https://unpkg.com/html5-qrcode"></script>
 </head>
 <body>
-    <div class="lookup-container">
-        <div class="lookup-header">
-            <h1>MicroCoupon</h1>
-            <p>カード残高照会</p>
-        </div>
-        
-        <div class="lookup-body">
-            {% if lookup_error %}
-            <div class="error-box">
-                <span class="material-icons" style="font-size: 20px;">error</span>
-                <span>{{ lookup_error }}</span>
+    <main class="page-content">
+        <div class="lookup-container">
+            <div class="lookup-header">
+                <h1>MicroCoupon</h1>
+                <p>カード残高照会</p>
             </div>
-            {% endif %}
 
-            <!-- QRコードスキャン -->
-            <div class="method-section">
-                <div class="method-title">
-                    <span class="material-icons">qr_code_scanner</span>
-                    方法1: QRコードをスキャン
+            <div class="lookup-body">
+                {% if lookup_error %}
+                <div class="error-box">
+                    <span class="material-icons error-icon">error</span>
+                    <span>{{ lookup_error }}</span>
                 </div>
-                <button type="button" class="qr-scan-button" onclick="openQRScanner()">
-                    <span class="material-icons">qr_code_scanner</span>
-                    <span>QRコードをスキャンする</span>
-                </button>
-            </div>
-            
-            <div class="divider">
-                <span>または</span>
-            </div>
-            
-            <!-- 手動入力 -->
-            <div class="method-section manual-input-section">
-                <div class="method-title">
-                    <span class="material-icons">edit</span>
-                    方法2: シリアル番号を入力
-                </div>
-                <form id="lookupForm">
-                    <div class="input-group">
-                        <input 
-                            type="text" 
-                            name="serial_number" 
-                            id="serialNumberInput"
-                            class="serial-input" 
-                            placeholder="シリアル番号を入力" 
-                            value="{{ entered_serial|default:'' }}"
-                            required
-                        >
-                        <button type="submit" class="lookup-button">
-                            <span class="material-icons">search</span>
-                            <span>照会</span>
-                        </button>
+                {% endif %}
+
+                <!-- QRコードスキャン -->
+                <div class="method-section">
+                    <div class="method-title">
+                        <span class="material-icons">qr_code_scanner</span>
+                        方法1: QRコードをスキャン
                     </div>
-                </form>
-            </div>
-            
-            <!-- 使い方案内 -->
-            <div class="info-box">
-                <h3>
-                    <span class="material-icons">help_outline</span>
-                    使い方
-                </h3>
-                <ul>
-                    <li>カードに印刷されたQRコードをスキャンするか、シリアル番号を入力してください</li>
-                    <li>カードの残高と利用履歴を確認できます</li>
-                    <li>ログイン不要でご利用いただけます</li>
-                </ul>
+                    <button type="button" class="qr-scan-button" onclick="openQRScanner()">
+                        <span class="material-icons">qr_code_scanner</span>
+                        <span>QRコードをスキャンする</span>
+                    </button>
+                </div>
+
+                <div class="divider">
+                    <span>または</span>
+                </div>
+
+                <!-- 手動入力 -->
+                <div class="method-section manual-input-section">
+                    <div class="method-title">
+                        <span class="material-icons">edit</span>
+                        方法2: シリアル番号を入力
+                    </div>
+                    <form id="lookupForm">
+                        <div class="input-group">
+                            <input 
+                                type="text" 
+                                name="serial_number" 
+                                id="serialNumberInput"
+                                class="serial-input" 
+                                placeholder="シリアル番号を入力" 
+                                value="{{ entered_serial|default:'' }}"
+                                required
+                            >
+                            <button type="submit" class="lookup-button">
+                                <span class="material-icons">search</span>
+                                <span>照会</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- 使い方案内 -->
+                <div class="info-box">
+                    <h3>
+                        <span class="material-icons">help_outline</span>
+                        使い方
+                    </h3>
+                    <ul>
+                        <li>カードに印刷されたQRコードをスキャンするか、シリアル番号を入力してください</li>
+                        <li>カードの残高と利用履歴を確認できます</li>
+                        <li>ログイン不要でご利用いただけます</li>
+                    </ul>
+                </div>
             </div>
         </div>
-    </div>
+    </main>
     
     <!-- QRスキャナーモーダル -->
     <div class="scanner-modal" id="qrScannerModal">
@@ -506,6 +164,6 @@
             }
         });
     </script>
-    <footer style="text-align: center; margin-top: 20px; color: #718096; font-size: 12px;">&copy; {% now "Y" %} mikannohako. All rights reserved.</footer>
+    <footer class="page-copyright">&copy; {% now "Y" %} mikannohako. All rights reserved.</footer>
 </body>
 </html>

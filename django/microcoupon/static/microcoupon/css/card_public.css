@@ -9,9 +9,16 @@ body {
     background: linear-gradient(135deg, #eef2f7 0%, #e6edf5 100%);
     min-height: 100vh;
     display: flex;
+    flex-direction: column;
+    padding: 20px;
+}
+
+.page-content {
+    flex: 1;
+    width: 100%;
+    display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px;
 }
 
 .card-container {
@@ -172,4 +179,11 @@ body {
     max-width: 200px;
     width: 100%;
     height: auto;
+}
+
+.page-copyright {
+    text-align: center;
+    margin-top: 20px;
+    color: #718096;
+    font-size: 12px;
 }

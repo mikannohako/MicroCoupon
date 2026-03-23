@@ -32,7 +32,8 @@ pick_compose_cmd() {
 generate_secret_key() {
     python3 - <<'PY'
 import secrets
-alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*(-_=+)"
+# Docker Composeの変数展開警告を避けるため、'$' は除外する
+alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#%^&*(-_=+)"
 print("".join(secrets.choice(alphabet) for _ in range(50)))
 PY
 }
