@@ -295,4 +295,4 @@ main() {
     log ""
 }
 
-main "$@" < /dev/tty 2>/dev/null || main "$@"
+main "$@" < /dev/tty || main "$@" < /dev/null
