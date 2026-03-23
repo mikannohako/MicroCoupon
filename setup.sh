@@ -101,11 +101,23 @@ setup_env_file() {
     fi
 
     log ""
+    log "=== Server Configuration ==="
+    
+    local domain_name debug_mode
+    domain_name=$(prompt_user_input "Domain name or IP:port" "localhost:8080")
+    debug_mode=$(prompt_user_input "Debug mode (True/False)" "False")
+    
+    export DOMAIN_NAME="$domain_name"
+    export DEBUG_MODE="$debug_mode"
+
+    log ""
     log "Creating .env from .env.template"
 
     local secret
     secret="$(generate_secret_key)"
     local htpasswd_path="$PROJECT_ROOT/.htpasswd"
+    local domain_name="${DOMAIN_NAME:-localhost:8080}"
+    local debug_mode="${DEBUG_MODE:-False}"
 
     # Use Python to read template, process values, and write with proper line endings (LF only)
     python3 - <<PYEOF
@@ -115,6 +127,8 @@ template_file = "$env_template"
 output_file = "$env_file"
 secret = "$secret"
 htpasswd_path = "$htpasswd_path"
+domain_name = "$domain_name"
+debug_mode = "$debug_mode"
 
 try:
     with open(template_file, 'r', encoding='utf-8') as f:
@@ -123,9 +137,18 @@ try:
     # Remove any CRLF and normalize to LF
     content = content.replace('\r\n', '\n').replace('\r', '\n')
     
+    # Generate BASE_URL from DOMAIN_NAME
+    if '://' in domain_name:
+        base_url = domain_name
+    else:
+        base_url = f'http://{domain_name}'
+    
     # Replace placeholders
     content = content.replace('SECRET_KEY=', f'SECRET_KEY={secret}')
     content = content.replace('BASIC_AUTH_FILE_HOST=', f'BASIC_AUTH_FILE_HOST={htpasswd_path}')
+    content = content.replace('DEBUG=', f'DEBUG={debug_mode}')
+    content = content.replace('DOMAIN_NAME=', f'DOMAIN_NAME={domain_name}')
+    content = content.replace('BASE_URL=', f'BASE_URL={base_url}')
     
     # Write with LF only (no CRLF)
     with open(output_file, 'w', encoding='utf-8', newline='\n') as f:
@@ -217,36 +240,36 @@ create_or_update_admin_user() {
         -e DJANGO_ADMIN_PASSWORD="$password" \
         -e DJANGO_ADMIN_EMAIL="$email" \
         django python manage.py shell <<'PY'
-    import os
-    from django.contrib.auth import get_user_model
+import os
+from django.contrib.auth import get_user_model
 
-    User = get_user_model()
-    username = os.environ["DJANGO_ADMIN_USERNAME"]
-    password = os.environ["DJANGO_ADMIN_PASSWORD"]
-    email = os.environ["DJANGO_ADMIN_EMAIL"]
+User = get_user_model()
+username = os.environ["DJANGO_ADMIN_USERNAME"]
+password = os.environ["DJANGO_ADMIN_PASSWORD"]
+email = os.environ["DJANGO_ADMIN_EMAIL"]
 
-    user, created = User.objects.get_or_create(
-        username=username,
-        defaults={
-            "email": email,
-            "is_active": True,
-            "is_staff": True,
-            "is_superuser": True,
-            "user_type": "admin",
-        },
-    )
+user, created = User.objects.get_or_create(
+    username=username,
+    defaults={
+        "email": email,
+        "is_active": True,
+        "is_staff": True,
+        "is_superuser": True,
+        "user_type": "admin",
+    },
+)
 
-    # Re-run safe: keep credentials/role up to date
-    user.email = email
-    user.is_active = True
-    user.is_staff = True
-    user.is_superuser = True
-    if hasattr(user, "user_type"):
-        user.user_type = "admin"
-    user.set_password(password)
-    user.save()
+# Re-run safe: keep credentials/role up to date
+user.email = email
+user.is_active = True
+user.is_staff = True
+user.is_superuser = True
+if hasattr(user, "user_type"):
+    user.user_type = "admin"
+user.set_password(password)
+user.save()
 
-    print(f"admin user ready: {username} (created={created})")
+print(f"admin user ready: {username} (created={created})")
 PY
 }
 
@@ -281,8 +304,22 @@ main() {
     log "✓ Initial setup completed successfully!"
     log "========================================================"
     log ""
-    log "Open: http://localhost:8080"
-    log "Login page: http://localhost:8080/account/login/"
+    
+    # Determine base URL from DOMAIN_NAME
+    local domain="${DOMAIN_NAME:-localhost:8080}"
+    local base_url
+    if [[ "$domain" == *"://"* ]]; then
+        base_url="$domain"
+    else
+        base_url="http://$domain"
+    fi
+    
+    log "Open: $base_url"
+    log "Login page: $base_url/account/login/"
+    log ""
+    log "Server Configuration:"
+    log "  Domain: ${DOMAIN_NAME:-localhost:8080}"
+    log "  Debug: ${DEBUG_MODE:-False}"
     log ""
     log "Django Admin:"
     log "  Username: ${DJANGO_ADMIN_USERNAME:-admin}"
