@@ -127,7 +127,7 @@ prompt_password_with_confirm() {
             echo "$password1"
             return
         else
-            log "ERROR: Passwords do not match. Please try again."
+            printf "[setup] ERROR: Passwords do not match. Please try again.\n" >&2
             echo "" >&2
         fi
     done
@@ -220,6 +220,11 @@ try:
     else:
         base_url = f'http://{domain_name}'
     
+    # Debug output
+    print(f"[setup] DEBUG: domain_name='{domain_name}'", file=sys.stderr)
+    print(f"[setup] DEBUG: base_url='{base_url}'", file=sys.stderr)
+    print(f"[setup] DEBUG: secret_len={len(secret)}", file=sys.stderr)
+    
     # Replace key=value lines (handles existing values correctly)
     # Uses regex to match "KEY=anything" and replace with "KEY=newvalue"
     content = re.sub(r'^SECRET_KEY=.*$', f'SECRET_KEY={secret}', content, flags=re.MULTILINE)
@@ -235,6 +240,8 @@ try:
     print(f"[setup] Created {output_file} with proper line endings")
 except Exception as e:
     print(f"[setup] ERROR: {e}", file=sys.stderr)
+    import traceback
+    traceback.print_exc(file=sys.stderr)
     sys.exit(1)
 PYEOF
 }
