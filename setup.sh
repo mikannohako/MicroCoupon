@@ -43,18 +43,21 @@ prompt_user_input() {
     local input
 
     if [[ -n "$default" ]]; then
-        printf "%s [%s]: " "$prompt" "$default"
+        printf "%s [%s]: " "$prompt" "$default" >&2
     else
-        printf "%s: " "$prompt"
+        printf "%s: " "$prompt" >&2
     fi
 
-    read -r input
-    
-    # Return default if empty input
-    if [[ -z "$input" ]]; then
-        echo "$default"
+    # Read from stdin with timeout (non-blocking for pipe inputs)
+    if read -r -t 10 input 2>/dev/null; then
+        if [[ -z "$input" ]]; then
+            echo "$default"
+        else
+            echo "$input"
+        fi
     else
-        echo "$input"
+        # Timeout or non-interactive: use default
+        echo "$default"
     fi
 }
 
@@ -71,16 +74,36 @@ setup_env_file() {
 
     log ""
     log "=== Django Admin User Setup ==="
-    local django_user django_pass django_email
-    django_user=$(prompt_user_input "Django admin username" "admin")
-    django_pass=$(prompt_user_input "Django admin password" "admin1234")
-    django_email=$(prompt_user_input "Django admin email" "admin@example.com")
+    
+    # Check if environment variables are already set
+    if [[ -z "${DJANGO_ADMIN_USERNAME:-}" ]]; then
+        log "Enter Django admin credentials (or press Enter for defaults)"
+        local django_user django_pass django_email
+        django_user=$(prompt_user_input "Django admin username" "admin")
+        django_pass=$(prompt_user_input "Django admin password" "admin1234")
+        django_email=$(prompt_user_input "Django admin email" "admin@example.com")
+        
+        export DJANGO_ADMIN_USERNAME="$django_user"
+        export DJANGO_ADMIN_PASSWORD="$django_pass"
+        export DJANGO_ADMIN_EMAIL="$django_email"
+    else
+        log "Using env vars: DJANGO_ADMIN_USERNAME=$DJANGO_ADMIN_USERNAME"
+    fi
 
     log ""
     log "=== Basic Auth Setup ==="
-    local basic_user basic_pass
-    basic_user=$(prompt_user_input "Basic auth username (for /admin)" "admin")
-    basic_pass=$(prompt_user_input "Basic auth password" "admin1234")
+    
+    if [[ -z "${BASIC_AUTH_USER:-}" ]]; then
+        log "Enter basic auth credentials (or press Enter for defaults)"
+        local basic_user basic_pass
+        basic_user=$(prompt_user_input "Basic auth username (for /admin)" "admin")
+        basic_pass=$(prompt_user_input "Basic auth password" "admin1234")
+        
+        export BASIC_AUTH_USER="$basic_user"
+        export BASIC_AUTH_PASS="$basic_pass"
+    else
+        log "Using env vars: BASIC_AUTH_USER=$BASIC_AUTH_USER"
+    fi
 
     log ""
     log "Creating .env from .env.template"
@@ -118,13 +141,6 @@ except Exception as e:
     print(f"[setup] ERROR: {e}", file=sys.stderr)
     sys.exit(1)
 PYEOF
-    
-    # Export for later use
-    export DJANGO_ADMIN_USERNAME="$django_user"
-    export DJANGO_ADMIN_PASSWORD="$django_pass"
-    export DJANGO_ADMIN_EMAIL="$django_email"
-    export BASIC_AUTH_USER="$basic_user"
-    export BASIC_AUTH_PASS="$basic_pass"
 }
 
 setup_basic_auth_file() {
@@ -265,26 +281,23 @@ main() {
     run_django_init
     create_or_update_admin_user
 
-    cat <<EOF
-
-========================================================
-[setup] ✓ Initial setup completed successfully!
-========================================================
-
-Open: http://localhost:8080
-Login page: http://localhost:8080/account/login/
-
-Django Admin:
-  Username: ${DJANGO_ADMIN_USERNAME:-admin}
-  Password: ${DJANGO_ADMIN_PASSWORD:-admin1234}
-  Email: ${DJANGO_ADMIN_EMAIL:-admin@example.com}
-
-Basic Auth (/admin path):
-  Username: ${BASIC_AUTH_USER:-admin}
-  Password: ${BASIC_AUTH_PASS:-admin1234}
-
-========================================================
-EOF
+    log ""
+    log "========================================================"
+    log "✓ Initial setup completed successfully!"
+    log "========================================================"
+    log ""
+    log "Open: http://localhost:8080"
+    log "Login page: http://localhost:8080/account/login/"
+    log ""
+    log "Django Admin:"
+    log "  Username: ${DJANGO_ADMIN_USERNAME:-admin}"
+    log "  Password: ${DJANGO_ADMIN_PASSWORD:-admin1234}"
+    log "  Email: ${DJANGO_ADMIN_EMAIL:-admin@example.com}"
+    log ""
+    log "Basic Auth (/admin path):"
+    log "  Username: ${BASIC_AUTH_USER:-admin}"
+    log "  Password: ${BASIC_AUTH_PASS:-admin1234}"
+    log ""
 }
 
-main "$@"
+main "$@" < /dev/tty 2>/dev/null || main "$@"
