@@ -62,26 +62,22 @@
             </p>
             {% endif %}
             {% if not is_admin and current_room %}
-            <button onclick="openProductModal()" style="width: 100%; padding: 10px 16px; background: #5a67d8; color: white; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: 500; margin-bottom: 16px;">
-                <span class="material-icons" style="font-size: 20px;">add</span>
-                <span>商品を追加</span>
-            </button>
+            <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+                <button onclick="openProductModal()" style="flex: 1; padding: 10px 16px; background: #5a67d8; color: white; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: 500;">
+                    <span class="material-icons" style="font-size: 20px;">add</span>
+                    <span>商品を追加</span>
+                </button>
+                <button onclick="openProductManageModal()" style="flex: 1; padding: 10px 16px; background: #2d3748; color: white; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: 500;">
+                    <span class="material-icons" style="font-size: 20px;">build</span>
+                    <span>商品を修正</span>
+                </button>
+            </div>
             {% endif %}
             
             <div class="products-grid" id="productsGrid">
                 {% for category in categories %}
                     {% for product in category.products.all %}
                     <div class="product-card" data-category="{{ category.id }}" data-product-id="{{ product.id }}" data-name="{{ product.name }}" data-price="{{ product.price }}">
-                        {% if not is_admin and current_room %}
-                        <div class="product-actions">
-                            <button onclick="event.stopPropagation(); openEditModal({{ product.id }}, '{{ product.name }}', {{ product.price }}, '{{ product.description }}', {{ product.display_order }}, {{ product.is_active|lower }})" class="product-btn edit" title="編集">
-                                <span class="material-icons" style="font-size: 14px;">edit</span>
-                            </button>
-                            <button onclick="event.stopPropagation(); deleteProduct({{ product.id }}, '{{ product.name }}')" class="product-btn delete" title="削除">
-                                <span class="material-icons" style="font-size: 14px;">delete</span>
-                            </button>
-                        </div>
-                        {% endif %}
                         <div class="product-name" title="{{ product.name }}">{{ product.name }}</div>
                         <div class="product-price">{{ product.price }} pt</div>
                     </div>
@@ -205,6 +201,51 @@
             <div class="modal-actions">
                 <button class="btn-modal btn-cancel" onclick="closeProductModal()">キャンセル</button>
                 <button class="btn-modal" style="background: #5a67d8; color: white;" onclick="submitProduct()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 商品修正モーダル（一覧から編集・削除） -->
+    <div class="modal" id="productManageModal">
+        <div class="modal-content">
+            <div class="scanner-header">
+                <h2>商品を修正</h2>
+                <p>一覧から編集・削除する商品を選択してください</p>
+            </div>
+            <div style="margin: 20px 0; max-height: 55vh; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
+                {% for category in categories %}
+                    {% for product in category.products.all %}
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid #edf2f7; gap: 12px;">
+                        <div style="min-width: 0;">
+                            <div style="font-weight: 600; color: #2d3748; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ product.name }}</div>
+                            <div style="font-size: 12px; color: #718096; margin-top: 2px;">{{ product.price }}pt / {{ category.name }}</div>
+                        </div>
+                        <div style="display: flex; gap: 8px; flex-shrink: 0;">
+                            <button
+                                type="button"
+                                onclick="openEditModalFromList({{ product.id }}, '{{ product.name|escapejs }}', {{ product.price }}, '{{ product.description|escapejs }}', {{ product.display_order }}, {{ product.is_active|lower }})"
+                                style="padding: 7px 10px; background: #3182ce; color: #fff; border: none; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;"
+                            >
+                                <span class="material-icons" style="font-size: 16px;">edit</span>
+                                <span style="font-size: 13px;">編集</span>
+                            </button>
+                            <button
+                                type="button"
+                                onclick="deleteProduct({{ product.id }}, '{{ product.name|escapejs }}')"
+                                style="padding: 7px 10px; background: #e53e3e; color: #fff; border: none; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;"
+                            >
+                                <span class="material-icons" style="font-size: 16px;">delete</span>
+                                <span style="font-size: 13px;">削除</span>
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% empty %}
+                <div style="padding: 24px; text-align: center; color: #718096;">商品がありません</div>
+                {% endfor %}
+            </div>
+            <div class="modal-actions">
+                <button class="btn-modal btn-cancel" onclick="closeProductManageModal()">閉じる</button>
             </div>
         </div>
     </div>
@@ -630,6 +671,19 @@
             document.getElementById('productActiveField').style.display = 'none';
             editingProductId = null;
             document.getElementById('productModal').classList.add('active');
+        }
+
+        function openProductManageModal() {
+            document.getElementById('productManageModal').classList.add('active');
+        }
+
+        function closeProductManageModal() {
+            document.getElementById('productManageModal').classList.remove('active');
+        }
+
+        function openEditModalFromList(id, name, price, description, displayOrder, isActive) {
+            closeProductManageModal();
+            openEditModal(id, name, price, description, displayOrder, isActive);
         }
 
         function openEditModal(id, name, price, description, displayOrder, isActive) {
