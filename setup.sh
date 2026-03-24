@@ -146,38 +146,7 @@ setup_env_file() {
     [[ -f "$env_template" ]] || fail ".env.template not found"
 
     log ""
-    log "=== Django Admin User Setup ==="
-    
-    # Check if environment variables are already set
-    if [[ -z "${DJANGO_ADMIN_USERNAME:-}" ]]; then
-        local django_user django_pass django_email
-        django_user=$(prompt_user_input "Username" "admin")
-        django_pass=$(prompt_password_with_confirm "Password" "admin1234")
-        django_email=$(prompt_user_input "Email" "admin@example.com")
-        
-        export DJANGO_ADMIN_USERNAME="$django_user"
-        export DJANGO_ADMIN_PASSWORD="$django_pass"
-        export DJANGO_ADMIN_EMAIL="$django_email"
-    else
-        log "Using env vars: DJANGO_ADMIN_USERNAME=$DJANGO_ADMIN_USERNAME"
-    fi
-
-    log ""
-    log "=== Basic Auth Setup ==="
-    
-    if [[ -z "${BASIC_AUTH_USER:-}" ]]; then
-        local basic_user basic_pass
-        basic_user=$(prompt_user_input "Username (/admin)" "admin")
-        basic_pass=$(prompt_password_with_confirm "Password (/admin)" "admin1234")
-        
-        export BASIC_AUTH_USER="$basic_user"
-        export BASIC_AUTH_PASS="$basic_pass"
-    else
-        log "Using env vars: BASIC_AUTH_USER=$BASIC_AUTH_USER"
-    fi
-
-    log ""
-    log "=== Server Configuration ==="
+    log "=== Django Configuration ==="
     
     local domain_name debug_mode
     domain_name=$(prompt_user_input "Domain name or IP:port" "localhost:8080")
@@ -187,12 +156,43 @@ setup_env_file() {
     export DEBUG_MODE="$debug_mode"
 
     log ""
-    log "=== Database Configuration ==="
+    log "=== Auth Configuration ==="
 
-    local db_user db_password
+    # Check if environment variables are already set
+    if [[ -z "${DJANGO_ADMIN_USERNAME:-}" ]]; then
+        local django_user django_pass django_email
+        django_user=$(prompt_user_input "Django admin username" "admin")
+        django_pass=$(prompt_password_with_confirm "Django admin password" "admin1234")
+        django_email=$(prompt_user_input "Django admin email" "admin@example.com")
+
+        export DJANGO_ADMIN_USERNAME="$django_user"
+        export DJANGO_ADMIN_PASSWORD="$django_pass"
+        export DJANGO_ADMIN_EMAIL="$django_email"
+    else
+        log "Using env vars: DJANGO_ADMIN_USERNAME=$DJANGO_ADMIN_USERNAME"
+    fi
+
+    if [[ -z "${BASIC_AUTH_USER:-}" ]]; then
+        local basic_user basic_pass
+        basic_user=$(prompt_user_input "Basic auth username (/admin)" "admin")
+        basic_pass=$(prompt_password_with_confirm "Basic auth password (/admin)" "admin1234")
+
+        export BASIC_AUTH_USER="$basic_user"
+        export BASIC_AUTH_PASS="$basic_pass"
+    else
+        log "Using env vars: BASIC_AUTH_USER=$BASIC_AUTH_USER"
+    fi
+
+    log ""
+    log "=== Database Configuration ==="
+    log "You can usually leave the “DB Name” as “microcoupon.”"
+
+    local db_name db_user db_password
+    db_name=$(prompt_user_input "DB Name" "microcoupon")
     db_user=$(prompt_user_input "DB Username" "microcoupon_user")
     db_password=$(prompt_password_with_confirm "DB Password" "microcoupon_pass")
 
+    export POSTGRES_DB="$db_name"
     export POSTGRES_USER="$db_user"
     export POSTGRES_PASSWORD="$db_password"
 
@@ -204,6 +204,7 @@ setup_env_file() {
     local htpasswd_path="$PROJECT_ROOT/.htpasswd"
     local domain_name="${DOMAIN_NAME:-localhost:8080}"
     local debug_mode="${DEBUG_MODE:-False}"
+    local db_name="${POSTGRES_DB:-microcoupon}"
     local db_user="${POSTGRES_USER:-microcoupon_user}"
     local db_password="${POSTGRES_PASSWORD:-microcoupon_pass}"
 
@@ -217,6 +218,7 @@ secret = "$secret"
 htpasswd_path = "$htpasswd_path"
 domain_name = "$domain_name"
 debug_mode = "$debug_mode"
+db_name = "$db_name"
 db_user = "$db_user"
 db_password = "$db_password"
 
@@ -241,6 +243,7 @@ try:
     content = re.sub(r'^DEBUG=.*$', f'DEBUG={debug_mode}', content, flags=re.MULTILINE)
     content = re.sub(r'^DOMAIN_NAME=.*$', f'DOMAIN_NAME={domain_name}', content, flags=re.MULTILINE)
     content = re.sub(r'^BASE_URL=.*$', f'BASE_URL={base_url}', content, flags=re.MULTILINE)
+    content = re.sub(r'^POSTGRES_DB=.*$', f'POSTGRES_DB={db_name}', content, flags=re.MULTILINE)
     content = re.sub(r'^POSTGRES_USER=.*$', f'POSTGRES_USER={db_user}', content, flags=re.MULTILINE)
     content = re.sub(r'^POSTGRES_PASSWORD=.*$', f'POSTGRES_PASSWORD={db_password}', content, flags=re.MULTILINE)
     content = re.sub(r'^BASIC_AUTH_FILE_HOST=.*$', f'BASIC_AUTH_FILE_HOST={htpasswd_path}', content, flags=re.MULTILINE)
@@ -508,6 +511,9 @@ check_prerequisites() {
     log "  Username: ${BASIC_AUTH_USER:-admin}"
     log "  Password: **********"
     log ""
+    log "Database:"
+    log "  User: ${POSTGRES_USER:-microcoupon_user}"
+    log "  Password: **********"
 }
 
 main "$@" < /dev/tty || main "$@" < /dev/null
