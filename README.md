@@ -1,4 +1,300 @@
-# MicroCoupon
+# MicroCoupon (English)
+
+日本語版は下にあります。
+
+MicroCoupon is a small-scale digital coupon issuing, management, and payment system built with Django, Nginx, and PostgreSQL.  
+It enables stores to issue electronic coupons, manage balances, sell products, and process payments via a web application.
+
+## Main Features
+
+### Digital Coupon Management
+- **Card Issuance**: Create digital coupon cards with QR codes
+  - Generate printable PDF data (with QR code and serial number)
+  - Issue cards in digital format
+- **Card Activation**: Activate cards after issuance
+  - Activation by QR code scan
+  - Activation by 4-digit temporary code (or serial number)
+- **Balance Check**: Public balance lookup (no authentication required)
+  - Check balance by scanning QR code
+  - Check balance by entering serial number
+  - Issue 4-digit temporary code when QR cannot be scanned (valid for 5 minutes)
+  - Countdown display for remaining temporary code time
+  - Error message for non-existent serial numbers (returns to lookup screen)
+  - Display transaction history
+- **Card Management**: View and edit card details and usage history
+
+### Product Management
+- Create, edit, and delete products
+- Edit and delete from product list via the "Edit Products" button on the register screen
+- Product list view
+- Price and inventory management
+
+### Sales and Payment Management
+- Product selection and checkout in POS register
+  - Payment by QR code scan
+  - Payment by 4-digit temporary code (or serial number)
+- One-time use temporary code (invalidated after successful payment/activation)
+- Automatic deduction from card balance
+- Transaction history recording and viewing
+- Sales data management
+
+### Dashboard
+- Integrated management screen
+- Centralized management for cards, products, and sales
+- Navigation to each operation
+
+### QR Code Features
+The system supports QR code scanning in multiple workflows:
+- **Card Balance Lookup** (`/cards/`): Public page for QR-based balance checks
+- **Card Activation** (`/manage/cards/activate/`): Activate cards with QR scan
+- **Payment Processing** (`/transactions/register/`): Scan QR at register for payment
+
+All QR scanning features use [html5-qrcode](https://github.com/mebjas/html5-qrcode) and work with smartphone/tablet cameras.
+
+## Tech Stack
+
+### Backend
+- **Django 5.x**: Web application framework
+- **PostgreSQL 16**: Database
+- **Python 3.x**: Programming language
+
+### Frontend
+- HTML/CSS/JavaScript
+- **qrcode**: QR code generation library
+- **html5-qrcode**: QR code scanning library (camera access)
+
+### Infrastructure
+- **Nginx**: Reverse proxy and web server
+- **Docker & Docker Compose**: Containerization and orchestration
+- **Gunicorn**: WSGI server (production)
+
+### Key Libraries
+- `psycopg`: PostgreSQL adapter
+- `qrcode`: QR code generation
+- `Pillow`: Image processing
+- `reportlab`: PDF generation
+- `python-dotenv`: Environment variable management
+
+## Project Structure
+
+```text
+MicroCoupon/
+|- django/                     # Django application
+|  |- account/                 # User authentication
+|  |- microcoupon/             # Coupon card management
+|  |- products/                # Product management
+|  |- dashboard/               # Admin dashboard
+|  |- transactions/            # Transactions and payments
+|  |- config/                  # Django settings
+|  |- static/                  # Static files
+|  |- staticfiles/             # Collected static files
+|  |- templates/               # Global templates
+|  |- requirements.txt         # Python dependencies
+|  `- Dockerfile               # Django container definition
+|- nginx/                      # Nginx configuration
+|  `- default.conf             # Nginx config
+|- docker-compose.yml          # Docker Compose config
+`- .env                        # Environment variables (to be created)
+```
+
+## Setup
+
+### Prerequisites
+- Docker and Docker Compose installed
+- Python 3.x installed
+- Git installed
+
+---
+
+### Common Setup
+
+These steps are required regardless of whether you use the startup script.
+
+1. **Nginx configuration**
+
+Configure `nginx/MicroCoupon.conf` like this:
+
+```nginx
+# Redirect HTTP to HTTPS
+server {
+  listen 80;
+  lisete [::]:80;
+  server_name your_servername;
+
+  location / {
+    return 301 https://$host$request_uri;
+  }
+
+# Redirect to MicroCoupon using HTTPS
+server {
+  listen 80;
+  listen [::]:80;
+  server_name your_servername;
+
+  ssl_certificate your_ssl_certificate.pem;
+  ssl_certificate_key /etc/letsencrypt/live/mikannohako.dev/privkey.pem;
+
+  location / {
+    return http://localhost:8080;
+  }
+}
+}
+```
+
+As long as requests are ultimately redirected to `localhost:8080`, any equivalent setup is fine.
+The sample above uses HTTPS, but HTTP-only should also work.
+
+2. **Reload Nginx config**
+
+```bash
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+If `sudo nginx -t` returns errors, fix them first and then run `sudo systemctl reload nginx`.
+
+---
+
+### One-Command Initial Setup for Linux
+
+Right after cloning the repository, run:
+
+```bash
+chmod +x setup.sh
+./setup.sh
+```
+
+Because setup is interactive, initial configuration is straightforward.
+
+Recommended production settings:
+
+```env
+DEBUG=False
+SECRET_KEY=<long-random-string>
+DOMAIN_NAME=<your-domain>
+BASE_URL=https://<your-domain>
+```
+
+When using `setup.sh`, `BASE_URL` and `SECRET_KEY` are automatically configured.
+
+What this script does:
+- Generates `.env` from `.env.template` when `.env` does not exist (`SECRET_KEY` auto-generated)
+- Creates `.htpasswd` for Basic Auth
+- Automatically removes conflicting existing containers (`microcoupon-django` / `microcoupon-postgres` / `microcoupon-nginx`)
+- Starts Docker containers (including build)
+- Runs DB migrations
+- Collects static files
+- Creates/updates Django admin user (`user_type=admin`)
+
+Default admin credentials:
+- Username: `admin`
+- Password: `admin1234`
+
+To disable automatic removal of conflicting containers:
+
+```bash
+AUTO_REMOVE_CONFLICTING_CONTAINERS=0 ./setup.sh
+```
+
+---
+
+### Manual Setup
+
+1. **Clone repository**:
+```bash
+git clone <repository-url>
+cd MicroCoupon
+```
+
+2. **Set environment variables**:
+
+Create `.env` in the project root:
+
+```env
+# Database
+POSTGRES_DB=microcoupon_db
+POSTGRES_USER=microcoupon_user
+POSTGRES_PASSWORD=your_secure_password
+
+# Django
+SECRET_KEY=your-secret-key-here
+DEBUG=True
+DOMAIN_NAME=localhost:8080
+BASE_URL=http://localhost:8080
+
+# VPS option
+BASIC_AUTH_FILE_HOST=/home/deploy/.htpasswd
+```
+
+3. **Start with Docker Compose**:
+```bash
+docker compose up -d
+```
+
+4. **Run database migrations**:
+```bash
+docker compose exec django python manage.py migrate
+```
+
+5. **Create admin user**:
+```bash
+docker compose exec django python manage.py createsuperuser
+```
+
+6. **Collect static files**:
+```bash
+docker compose exec django python manage.py collectstatic --noinput
+```
+
+7. **Access**:
+- Application: http://localhost:8080
+- Admin: http://localhost:8080/admin
+
+Values may vary depending on `.env` configuration.
+
+## Development
+
+### Create and Apply Migrations
+
+```bash
+# Generate migration files
+docker compose exec django python manage.py makemigrations
+
+# Apply migrations
+docker compose exec django python manage.py migrate
+```
+
+### Check Logs
+
+```bash
+# All container logs
+docker compose logs -f
+
+# Specific services
+docker compose logs -f django
+docker compose logs -f nginx
+docker compose logs -f db
+```
+
+## Contribution
+
+Please report bugs and feature requests via Issues.  
+Pull requests are also welcome.
+
+## Support
+
+If you encounter problems, see [ERROR_PAGES.md](ERROR_PAGES.md).  
+If you still need help, contact the author.
+
+## License and Copyright
+
+This project is released under the MIT License. For details, see [LICENSE](LICENSE).
+
+&copy; 2026 mikannohako All Rights Reserved.
+
+---
+
+# MicroCoupon (Japanese)
 
 Django、Nginx、PostgreSQLを利用した小規模電子クーポンの発行・管理・決済システムです。  
 店舗での電子クーポン発行、残高管理、商品販売、決済処理をWebアプリケーションで実現します。
