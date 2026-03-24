@@ -102,25 +102,56 @@ MicroCoupon/
 - Python 3.xがインストール済み
 - Gitがインストール済み
 
-### 環境変数の設定
+---
 
-プロジェクトルートに`.env`ファイルを作成してください：
+### 共通セットアップ
 
-```env
-# データベース設定
-POSTGRES_DB=microcoupon_db
-POSTGRES_USER=microcoupon_user
-POSTGRES_PASSWORD=your_secure_password
+スタートアップスクリプトの使用にかかわらずに行わなければならないセットアップです。
 
-# Django設定
-SECRET_KEY=your-secret-key-here
-DEBUG=True
-DOMAIN_NAME=localhost:8080
-BASE_URL=http://localhost:8080
+1. **Nginx の設定**
 
-# VPS環境での設定（オプション）
-BASIC_AUTH_FILE_HOST=/home/deploy/.htpasswd
-```
+`nginx/MicroCoupon.conf` では以下のような設定を行ってください：
+
+```nginx
+# HTTPからHTTPSにリダイレクト
+server {
+  listen 80;
+  lisete [::]:80;
+  server_name your_servername;
+
+  location / {
+    return 301 https://$host$request_uri;
+  }
+
+# HTTPSを利用したMicroCouponへのリダイレクト
+server {
+  listen 80;
+  listen [::]:80;
+  server_name your_servername;
+
+  ssl_certificate your_ssl_certificate.pem;
+  ssl_certificate_key /etc/letsencrypt/live/mikannohako.dev/privkey.pem;
+
+  location / {
+    return http://localhost:8080;
+  }
+}
+}
+```
+
+最終的に「localhost:8080」にリダイレクトできれば正直何でもいいです。
+上記ではHTTPSを利用していますが、HTTPでも動くはずです。
+
+2. **Nginxの設定を更新**
+
+```bash
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+※`sudo nginx -t`でエラーが発生した場合は修正してから`sudo systemctl reload nginx`を実行してください。
+
+---
 
 ### Linux向けワンコマンド初期セットアップ
 
@@ -164,6 +195,8 @@ BASE_URL=https://<実際のドメイン名>
 AUTO_REMOVE_CONFLICTING_CONTAINERS=0 ./setup.sh
 ```
 
+---
+
 ### 手動で行う場合
 
 1. **リポジトリのクローン**:
@@ -172,30 +205,50 @@ git clone <repository-url>
 cd MicroCoupon
 ```
 
-2. **Docker Composeで起動**:
+2. **環境変数の設定**:
+
+プロジェクトルートに`.env`ファイルを作成してください：
+
+```env
+# データベース設定
+POSTGRES_DB=microcoupon_db
+POSTGRES_USER=microcoupon_user
+POSTGRES_PASSWORD=your_secure_password
+
+# Django設定
+SECRET_KEY=your-secret-key-here
+DEBUG=True
+DOMAIN_NAME=localhost:8080
+BASE_URL=http://localhost:8080
+
+# VPS環境での設定（オプション）
+BASIC_AUTH_FILE_HOST=/home/deploy/.htpasswd
+```
+
+3. **Docker Composeで起動**:
 ```bash
 docker compose up -d
 ```
 
-3. **データベースのマイグレーション**:
+4. **データベースのマイグレーション**:
 ```bash
 docker compose exec django python manage.py migrate
 ```
 
-4. **管理者ユーザーの作成**:
+5. **管理者ユーザーの作成**:
 ```bash
 docker compose exec django python manage.py createsuperuser
 ```
 
-5. **静的ファイルの収集**:
+6. **静的ファイルの収集**:
 ```bash
 docker compose exec django python manage.py collectstatic --noinput
 ```
 
-6. **アクセス**:
+7. **アクセス**:
 - アプリケーション: http://localhost:8080
 - 管理画面: http://localhost:8080/admin
-※.envファイルの設定により変動します。
+※.envファイルの設定により変動します。
 
 ## 開発
 
@@ -229,6 +282,7 @@ docker compose logs -f db
 ## サポート
 
 問題が発生した場合は、[ERROR_PAGES.md](ERROR_PAGES.md)を参照してください。
+それでもわからなければ制作者にお問い合わせください。気付き次第返信します。
 
 ## ライセンス・著作権
 
