@@ -294,7 +294,7 @@ This project is released under the MIT License. For details, see [LICENSE](LICEN
 
 ---
 
-# MicroCoupon (Japanese)
+# MicroCoupon (日本語)
 
 Django、Nginx、PostgreSQLを利用した小規模電子クーポンの発行・管理・決済システムです。  
 店舗での電子クーポン発行、残高管理、商品販売、決済処理をWebアプリケーションで実現します。
