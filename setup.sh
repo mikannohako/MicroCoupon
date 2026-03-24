@@ -187,6 +187,16 @@ setup_env_file() {
     export DEBUG_MODE="$debug_mode"
 
     log ""
+    log "=== Database Configuration ==="
+
+    local db_user db_password
+    db_user=$(prompt_user_input "DB Username" "microcoupon_user")
+    db_password=$(prompt_password_with_confirm "DB Password" "microcoupon_pass")
+
+    export POSTGRES_USER="$db_user"
+    export POSTGRES_PASSWORD="$db_password"
+
+    log ""
     log "Creating .env from .env.template"
 
     local secret
@@ -194,6 +204,8 @@ setup_env_file() {
     local htpasswd_path="$PROJECT_ROOT/.htpasswd"
     local domain_name="${DOMAIN_NAME:-localhost:8080}"
     local debug_mode="${DEBUG_MODE:-False}"
+    local db_user="${POSTGRES_USER:-microcoupon_user}"
+    local db_password="${POSTGRES_PASSWORD:-microcoupon_pass}"
 
     # Use Python to read template, process values, and write with proper line endings (LF only)
     python3 - <<PYEOF
@@ -205,6 +217,8 @@ secret = "$secret"
 htpasswd_path = "$htpasswd_path"
 domain_name = "$domain_name"
 debug_mode = "$debug_mode"
+db_user = "$db_user"
+db_password = "$db_password"
 
 try:
     import re
@@ -227,6 +241,8 @@ try:
     content = re.sub(r'^DEBUG=.*$', f'DEBUG={debug_mode}', content, flags=re.MULTILINE)
     content = re.sub(r'^DOMAIN_NAME=.*$', f'DOMAIN_NAME={domain_name}', content, flags=re.MULTILINE)
     content = re.sub(r'^BASE_URL=.*$', f'BASE_URL={base_url}', content, flags=re.MULTILINE)
+    content = re.sub(r'^POSTGRES_USER=.*$', f'POSTGRES_USER={db_user}', content, flags=re.MULTILINE)
+    content = re.sub(r'^POSTGRES_PASSWORD=.*$', f'POSTGRES_PASSWORD={db_password}', content, flags=re.MULTILINE)
     content = re.sub(r'^BASIC_AUTH_FILE_HOST=.*$', f'BASIC_AUTH_FILE_HOST={htpasswd_path}', content, flags=re.MULTILINE)
     
     # Write with LF only (no CRLF)
