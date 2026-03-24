@@ -98,8 +98,9 @@ MicroCoupon/
 ## セットアップ
 
 ### 前提条件
-- Docker及びDocker Composeのインストール
-- Git
+- Docker及びDocker Composeがインストール済み
+- Python 3.xがインストール済み
+- Gitがインストール済み
 
 ### 環境変数の設定
 
@@ -119,9 +120,7 @@ BASE_URL=http://localhost:8080
 
 # VPS環境での設定（オプション）
 BASIC_AUTH_FILE_HOST=/home/deploy/.htpasswd
-```
-
-### ローカル開発環境での起動
+```
 
 ### Linux向けワンコマンド初期セットアップ
 
@@ -165,65 +164,38 @@ BASE_URL=https://<実際のドメイン名>
 AUTO_REMOVE_CONFLICTING_CONTAINERS=0 ./setup.sh
 ```
 
+### 手動で行う場合
+
 1. **リポジトリのクローン**:
 ```bash
 git clone <repository-url>
 cd MicroCoupon
 ```
 
-1. **Docker Composeで起動**:
+2. **Docker Composeで起動**:
 ```bash
 docker compose up -d
 ```
 
-1. **データベースのマイグレーション**:
+3. **データベースのマイグレーション**:
 ```bash
 docker compose exec django python manage.py migrate
 ```
 
-1. **管理者ユーザーの作成**:
+4. **管理者ユーザーの作成**:
 ```bash
 docker compose exec django python manage.py createsuperuser
 ```
 
-1. **静的ファイルの収集**:
+5. **静的ファイルの収集**:
 ```bash
 docker compose exec django python manage.py collectstatic --noinput
 ```
 
-1. **アクセス**:
+6. **アクセス**:
 - アプリケーション: http://localhost:8080
 - 管理画面: http://localhost:8080/admin
-※.envファイルの設定により変動します。
-
-## VPS デプロイメント
-
-### Basic認証の設定
-
-本番環境でBasic認証を有効にする場合：
-
-1. **htpasswdファイルの作成**:
-```bash
-mkdir -p /home/deploy
-docker run --rm httpd:2.4-alpine htpasswd -nbB admin YOUR_PASSWORD > /home/deploy/.htpasswd
-chmod 644 /home/deploy/.htpasswd
-```
-
-2. **.envファイルに追加**:
-```env
-BASIC_AUTH_FILE_HOST=/home/deploy/.htpasswd
-```
-
-3. **Nginxコンテナでの確認**:
-```bash
-# staticfilesの確認
-docker compose exec nginx ls -la /app/staticfiles/error-pages/
-
-# htpasswdファイルの確認  
-docker compose exec nginx cat /etc/nginx/.htpasswd
-```
-
-### 本番環境設定
+※.envファイルの設定により変動します。
 
 ## 開発
 
@@ -262,4 +234,4 @@ docker compose logs -f db
 
 このプロジェクトはMITライセンスの下で公開されています。詳細は[LICENSE](LICENSE)ファイルをご確認ください。
 
-&copy; 2026 [あなたの名前] All Rights Reserved.
+&copy; 2026 mikannohako All Rights Reserved.
