@@ -202,7 +202,7 @@ AUTO_REMOVE_CONFLICTING_CONTAINERS=0 ./setup.sh
 
 1. **Clone repository**:
 ```bash
-git clone <repository-url>
+git clone https://github.com/mikannohako/MicroCoupon.git
 cd MicroCoupon
 ```
 
@@ -222,7 +222,7 @@ DEBUG=True
 DOMAIN_NAME=localhost:8080
 BASE_URL=http://localhost:8080
 
-# VPS option
+# Basic Authentication option
 BASIC_AUTH_FILE_HOST=/home/deploy/.htpasswd
 ```
 
@@ -482,8 +482,6 @@ BASE_URL=https://<実際のドメイン名>
 - ユーザー名: `admin`
 - パスワード: `admin1234`
 
-初回実行時に変更したい場合:
-
 
 同名コンテナの自動削除を無効化したい場合:
 
@@ -497,7 +495,7 @@ AUTO_REMOVE_CONFLICTING_CONTAINERS=0 ./setup.sh
 
 1. **リポジトリのクローン**:
 ```bash
-git clone <repository-url>
+git clone https://github.com/mikannohako/MicroCoupon.git
 cd MicroCoupon
 ```
 
@@ -517,7 +515,7 @@ DEBUG=True
 DOMAIN_NAME=localhost:8080
 BASE_URL=http://localhost:8080
 
-# VPS環境での設定（オプション）
+# Django管理画面に追加でBasic認証を設ける場合（オプション）
 BASIC_AUTH_FILE_HOST=/home/deploy/.htpasswd
 ```
 
@@ -544,6 +542,7 @@ docker compose exec django python manage.py collectstatic --noinput
 7. **アクセス**:
 - アプリケーション: http://localhost:8080
 - 管理画面: http://localhost:8080/admin
+
 ※.envファイルの設定により変動します。
 
 ## 開発
